@@ -3,7 +3,8 @@
 <use name=DQMServices/Core>
 <use name=TauAnalysis/DQMTools>
 <use name=root>
-<use name=rootroofit>
+<use name=roofit>
+<use name=rootgraphics>
 
 <export>
   <lib name=TauAnalysisFittingTools>
@@ -12,5 +13,6 @@
   <use name=DQMServices/Core>
   <use name=TauAnalysis/DQMTools>
   <use name=root>
-  <use name=rootroofit>
+  <use name=roofit>
+  <use name=rootgraphics>
 </export>
