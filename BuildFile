@@ -6,6 +6,7 @@
 <use name=roofit>
 <use name=rootgraphics>
 <use name="xerces-c">
+<use name=lhapdf>
 
 <export>
   <lib name=TauAnalysisFittingTools>
@@ -17,4 +18,5 @@
   <use name=roofit>
   <use name=rootgraphics>
   <use name="xerces-c">
+  <use name=lhapdf>
 </export>
