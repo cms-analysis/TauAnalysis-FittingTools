@@ -17,115 +17,199 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource")
 
+higgsMassPoints = [ '100', '130', '160', '200', '300' ]
+
 process.loadAnalysisResults = cms.EDAnalyzer("DQMFileLoader",
     all = cms.PSet(
         inputFileNames = cms.vstring(
-            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_all.root'
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_skimmed.root'
         ),
-        dqmDirectory_store = cms.string('')
+        dqmDirectory_store = cms.string('/export')
     )
 )
 
 process.dumpDQMStore = cms.EDAnalyzer("DQMStoreDump")
 
+AHtoMuTau_systematics = [
+##    'muonPtUp',
+##    'muonPtDown',
+##    'tauJetEnUp',
+##    'tauJetEnDown',
+##    'jetEnUp',
+##    'jetEnDown'
+]
+
+dqmDirectoryTemplateAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/'
+dqmDirectoryFilterStatAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/FilterStatistics/'
+meNameTemplateAHtoMuTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+meNameNumEventsProcessedAHtoMuTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+meNameNumEventsPassedAHtoMuTau = 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+
 process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
 
-    dqmDirectory = cms.string('harvested/#PROCESSDIR#/ahMuTauAnalyzer_woBtag'),
-    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/AHtoMuTau/export"),                 
+    channels = cms.VPSet(
+        cms.PSet(
+            name = cms.string("AHtoMuTau"),
+            shortName = cms.string("ma"),
+            binning = cms.string(
+                dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+               + meNameTemplateAHtoMuTau
+            )
+        )
+    ),
+
+    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/export"),                 
 
     processes = cms.PSet(
-        A100 = cms.PSet(
-            dqmDirectory = cms.string('A100Sum'),
-	    outputFilePath = cms.string("m100"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        A130 = cms.PSet(
-            dqmDirectory = cms.string('A130Sum'),
-	    outputFilePath = cms.string("m130"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        A160 = cms.PSet(
-            dqmDirectory = cms.string('A160Sum'),
-	    outputFilePath = cms.string("m160"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        A180 = cms.PSet(
-            dqmDirectory = cms.string('A180Sum'),
-	    outputFilePath = cms.string("m180"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        A200 = cms.PSet(
-            dqmDirectory = cms.string('A200Sum'),
-	    outputFilePath = cms.string("m200"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        A300 = cms.PSet(
-            dqmDirectory = cms.string('A300Sum'),
-	    outputFilePath = cms.string("m300"),
-	    outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
         Ztautau = cms.PSet(
-            dqmDirectory = cms.string('Ztautau'),
-	    outputFilePath = cms.string(""),
-	    outputFileName = cms.string("ztt_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(True)
-        ),
-        Zmumu = cms.PSet(
-            dqmDirectory = cms.string('Zmumu'),
-            outputFilePath = cms.string(""),
-	    outputFileName = cms.string("zmm_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(False)
-        ),
-        QCD = cms.PSet(
-            dqmDirectory = cms.string('qcdSum'),
-	    outputFilePath = cms.string(""),
-	    outputFileName = cms.string("qcd_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(False)
-        ),
-        WplusJets = cms.PSet(
-            dqmDirectory = cms.string('WplusJets'),
-	    outputFilePath = cms.string(""),
-	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(False)
-        ),
-        TTplusJets = cms.PSet(
-            dqmDirectory = cms.string('TTplusJets'),
-	    outputFilePath = cms.string(""),
-	    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(False)
-        ),
-        data = cms.PSet(
-            dqmDirectory = cms.string('data'),
-	    outputFilePath = cms.string(""),
-	    outputFileName = cms.string("data_#CHANNEL_OUTPUTFILENAME#.hst"),
-            hasSysUncertainties = cms.bool(False)
-        )
-    ),
-
-    channels = cms.PSet(
-	AHtoMuTau = cms.PSet(
-	    template = cms.string(
-	        'afterEvtSelNonCentralJetEt20bTag/#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
-            ),
-            normalization = cms.PSet(
-                numEventsProcessed = cms.string(
-                    'FilterStatistics/#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                ),
-                numEventsPassed = cms.string(
-                    'FilterStatistics/#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
                 )
             ),
-            outputFileName = cms.string("ma")
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("ztt_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),
+        Zmumu = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'Zmumu'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                )
+            ),
+            outputFilePath = cms.string(""),                                   
+	    outputFileName = cms.string("zmm_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),                                      
+        QCD = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'qcdSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                )
+            ),
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("qcd_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),    
+        WplusJets = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'WplusJets'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                )
+            ),
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),
+        ##TTplusJets = cms.PSet(
+        ##    distributions = cms.PSet(
+        ##        AHtoMuTau = cms.PSet(
+        ##            template = cms.string(
+        ##                dqmDirectoryTemplateAHtoMuTau % 'TTplusJets'
+        ##               + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+        ##            ),
+        ##            systematics = cms.vstring(AHtoMuTau_systematics),
+        ##            normalization = cms.PSet(
+        ##                 numEventsProcessed = cms.string(
+        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+        ##                 ),
+        ##                 numEventsPassed = cms.string(
+        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+        ##                 )
+        ##            )
+        ##        )
+        ##    ),
+        ##    outputFilePath = cms.string(""),
+	##    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
+        ##),
+        data = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'data'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                )
+            ),
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("data_#CHANNEL_OUTPUTFILENAME#.hst")
         )
-    ),
+    )
 
     ##systematics = cms.PSet(
+    ##	  muonPtUp = cms.PSet(
+    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysMuonPtUp'),
+    ## 	      outputFilePath = cms.string("mu_pt+1")
+    ##    ),
+    ##	  muonPtDown = cms.PSet(
+    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysMuonPtDown'),
+    ##	      outputFilePath = cms.string("mu_pt-1")
+    ##    ),                                                  
     ##	  tauJetEnUp = cms.PSet(
     ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnUp'),
     ## 	      outputFilePath = cms.string("tau_es+1")
@@ -134,48 +218,86 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
     ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnDown'),
     ##	      outputFilePath = cms.string("tau_es-1")
     ##    ),
-    ##	  muonPtUp = cms.PSet(
-    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnUp'),
-    ## 	      outputFilePath = cms.string("mu_pt+1")
-    ##    ),
-    ##	  muonPtDown = cms.PSet(
-    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnDown'),
-    ##	      outputFilePath = cms.string("mu_pt-1")
-    ##    ),
     ##	  jetEnUp = cms.PSet(
-    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnUp'),
+    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysJetEnUp'),
     ## 	      outputFilePath = cms.string("jet_es+1")
     ##    ),
     ##	  jetEnDown = cms.PSet(
-    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysTauJetEnDown'),
+    ##	      dqmDirectory = cms.string('sysUncertaintyHistManagerResults/sysJetEnDown'),
     ##	      outputFilePath = cms.string("jet_es-1")
-    ##    ),                                                  
+    ##    )                                                
     ##)
 )
 
-process.compDQMEffXsec = cms.EDAnalyzer("DQMEffXsecCalculator",
+for higgsMassPoint in higgsMassPoints:
+
+    pset = cms.PSet(
+        distributions = cms.PSet(
+            AHtoMuTau = cms.PSet(
+                template = cms.string(
+                    dqmDirectoryTemplateAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                   + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                ),
+                systematics = cms.vstring(AHtoMuTau_systematics),
+                normalization = cms.PSet(
+                    numEventsProcessed = cms.string(
+                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                    ),
+                    numEventsPassed = cms.string(
+                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                    )
+                )
+            )
+        ),
+        outputFilePath = cms.string("m%s" % higgsMassPoint),
+        outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst")
+    )
+    
+    setattr(process.exportAnalysisResults.processes, "A%s" % higgsMassPoint, pset)
+
+print("computing AHtoMuTau effectice cross-sections...")
+
+numeratorAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+denominatorAHtoMuTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+numEventsPassedAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+processEntryAHtoMuTau = cms.PSet(
+    efficiency = cms.PSet(
+        numerator = cms.string(numeratorAHtoMuTau),
+        denominator = cms.string(denominatorAHtoMuTau)
+    ),
+    numEventsPassed = cms.string(numEventsPassedAHtoMuTau),
+    dqmDirectory = cms.string('')
+)
+
+process.compDQMEffXsecAHtoMuTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI),
     channels = cms.PSet(
-        QCD = cms.PSet(
-            efficiency = cms.PSet(
-                numerator = cms.string(
-                    'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-                ),
-                denominator = cms.string(
-                    'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                )
-            ),
-            numEventsPassed = cms.string(
-                'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            dqmDirectory = cms.string('harvested/qcdSum/ahMuTauAnalyzer_woBtag')
+        Ztautau = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/Ztautau/ahMuTauAnalyzer_woBtag')
+        ),
+        Zmumu = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/Zmumu/ahMuTauAnalyzer_woBtag')
+        ),
+        QCD = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/qcdSum/ahMuTauAnalyzer_woBtag')
+        ),
+        WplusJets = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/WplusJets/ahMuTauAnalyzer_woBtag')
+        ##),
+        ##TTplusJets = processEntryAHtoMuTau.clone(
+        ##    dqmDirectory = cms.string('/export/harvested/TTplusJets/ahMuTauAnalyzer_woBtag')
         )
     )
 )
 
 process.p = cms.Path(
     process.loadAnalysisResults
-  #+ process.dumpDQMStore 
+   + process.dumpDQMStore 
    + process.exportAnalysisResults
-   + process.compDQMEffXsec
+   + process.compDQMEffXsecAHtoMuTau 
 )
+
+# print-out all python configuration parameter information
+print process.dumpPython()
