@@ -17,13 +17,15 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource")
 
+higgsMassPoints = [ '100', '130', '160', '200', '300' ]
+
 process.loadAnalysisResults = cms.EDAnalyzer("DQMFileLoader",
     all = cms.PSet(
         inputFileNames = cms.vstring(
-            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_all.root',
-            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsZtoElecTau_all.root'
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_skimmed.root',
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsZtoElecTau_skimmed.root'
         ),
-        dqmDirectory_store = cms.string('')
+        dqmDirectory_store = cms.string('/export')
     )
 )
 
@@ -32,96 +34,42 @@ process.dumpDQMStore = cms.EDAnalyzer("DQMStoreDump")
 process.sumAHtoElecTau = cms.EDAnalyzer("DQMHistAdder",
     qcdSum = cms.PSet(
         dqmDirectories_input = cms.vstring(
-            '/summed/harvested/qcdBCtoESum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto',
-            '/summed/harvested/qcdEMenrichedSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto'
+            '/export/summed/harvested/qcdBCtoESum/zElecTauAnalyzer/',
+            '/export/summed/harvested/qcdEMenrichedSum/zElecTauAnalyzer/'
         ),
-        dqmDirectory_output = cms.string('/summed/harvested/qcdSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto')
+        dqmDirectory_output = cms.string('/export/summed/harvested/qcdSum/zElecTauAnalyzer/')
     ),
     WplusJetsSum = cms.PSet(
         dqmDirectories_input = cms.vstring(
-            '/summed/harvested/WtoENu/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto',
-            '/summed/harvested/WtoTauNu/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto'
+            '/export/summed/harvested/WtoENu/zElecTauAnalyzer/',
+            '/export/summed/harvested/WtoTauNu/zElecTauAnalyzer/'
         ),
-        dqmDirectory_output = cms.string('/summed/harvested/WplusJetsSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto')
+        dqmDirectory_output = cms.string('/export/summed/harvested/WplusJetsSum/zElecTauAnalyzer/')
     )                                   
 
 )
 
-process.compAHtoElecTauPrediction = cms.EDAnalyzer("DQMHistScaler",
-    config = cms.VPSet(
-        cms.PSet(
-            meName_input = cms.string(
-                 'harvested/A100Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A100Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
+psets = []
+
+for higgsMassPoint in higgsMassPoints:
+
+    pset = cms.PSet(
+        meName_input = cms.string(
+            ('/export/harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
+           + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1') % higgsMassPoint
         ),
-        cms.PSet(   
-            meName_input = cms.string(
-                 'harvested/A130Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A130Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
+        meName_output = cms.string(
+            ('/export/harvested/A%sSum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
+           + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1') % higgsMassPoint
         ),
-        cms.PSet( 
-            meName_input = cms.string(
-                 'harvested/A160Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A160Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
-        ),
-        cms.PSet(                                         
-            meName_input = cms.string(
-                 'harvested/A180Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A180Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
-        ),
-        cms.PSet(  
-            meName_input = cms.string(
-                 'harvested/A200Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A200Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
-        ),
-        cms.PSet(  
-            meName_input = cms.string(
-                 'harvested/A300Sum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                + 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meName_output = cms.string(
-                 'harvested/A300Sum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                + 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            meType = cms.string("hist"),
-            scaleFactor = cms.double(0.613)
-        )
+        meType = cms.string("real"),
+        scaleFactor = cms.double(0.613)
     )
+
+    psets.append(pset)
+
+process.compAHtoElecTauPrediction = cms.EDAnalyzer("DQMHistScaler",
+    config = cms.VPSet(psets)
 )                                                   
 
 AHtoMuTau_systematics = [
@@ -142,314 +90,292 @@ AHtoElecTau_systematics = [
 ##    'jetEnDown'
 ]
 
+dqmDirectoryTemplateAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/'
+dqmDirectoryFilterStatAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/FilterStatistics/'
+meNameTemplateAHtoMuTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+meNameNumEventsProcessedAHtoMuTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+meNameNumEventsPassedAHtoMuTau = 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+
+dqmDirectoryTemplateAHtoElecTau = '/export/summed/harvested/%s/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/'
+dqmDirectoryFilterStatAHtoElecTau = '/export/summed/harvested/%s/zElecTauAnalyzer/FilterStatistics/'
+meNameTemplateAHtoElecTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+meNameNumEventsProcessedAHtoElecTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+meNameNumEventsPassedAHtoElecTau = 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
+
 process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
 
-    channels = cms.string(
-        'AHtoMuTau',
-        'AHtoElecTau'
-    ),        
+    channels = cms.VPSet(
+        cms.PSet(
+            name = cms.string("AHtoMuTau"),
+            shortName = cms.string("ma"),
+            binning = cms.string(
+                dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+               + meNameTemplateAHtoMuTau
+            )
+        ),
+        cms.PSet(
+            name = cms.string("AHtoElecTau"),
+            shortName = cms.string("ea"),
+            binning = cms.string(
+                dqmDirectoryTemplateAHtoElecTau % 'Ztautau'
+               + meNameTemplateAHtoElecTau
+            )
+        )
+    ),
 
     outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/export"),                 
 
     processes = cms.PSet(
-        Ztautau = cms.PSet
+        Ztautau = cms.PSet(
             distributions = cms.PSet(
                 AHtoMuTau = cms.PSet(
                     template = cms.string(
-                        '/harvested/A%sSum/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                          )
                     )
                 ),        
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/Ztautau/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'Ztautau'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
                     systematics = cms.vstring(AHtoElecTau_systematics),
                     normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/Ztautau/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/Ztautau/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'Ztautau'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
+                         )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
 	    outputFileName = cms.string("ztt_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
         Zee = cms.PSet(
             distributions = cms.PSet(
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/Zee/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'Zee'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
                     systematics = cms.vstring(AHtoElecTau_systematics),
                     normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/Zee/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/Zee/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
-                    )
-                )
-            ),
-	    outputFileName = cms.string("zee_#CHANNEL_OUTPUTFILENAME#.hst")
-        ),
-        Zmumu = cms.PSet
-            distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
-                    template = cms.string(
-                        '/harvested/Zmumu/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
-                    ),
-                    systematics = cms.vstring(AHtoMuTau_systematics),
-                    normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/Zmumu/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoElecTau % 'Zee'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/Zmumu/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoElecTau % 'Zee'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
                          )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("zee_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),
+        Zmumu = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'Zmumu'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                )
+            ),
+            outputFilePath = cms.string(""),                                   
 	    outputFileName = cms.string("zmm_#CHANNEL_OUTPUTFILENAME#.hst")
         ),                                      
         QCD = cms.PSet(
             distributions = cms.PSet(
                 AHtoMuTau = cms.PSet(
                     template = cms.string(
-                        '/harvested/qcdSum/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoMuTau % 'qcdSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/qcdSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/qcdSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                          )
                     )
                 ),
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/qcdSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'qcdSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
                     systematics = cms.vstring(AHtoElecTau_systematics),
                     normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/Ztautau/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/Ztautau/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
+                         )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
 	    outputFileName = cms.string("qcd_#CHANNEL_OUTPUTFILENAME#.hst")
         ),    
         WplusJets = cms.PSet(
             distributions = cms.PSet(
                 AHtoMuTau = cms.PSet(
                     template = cms.string(
-                        '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoMuTau % 'WplusJets'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                          )
                     )
                 ),
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'WplusJetsSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
                     systematics = cms.vstring(AHtoElecTau_systematics),
-                    normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
-                    )
-                )
-            ),
-	    outputFileName = cms.string("qcd_#CHANNEL_OUTPUTFILENAME#.hst")
-        ),
-        WplusJets = cms.PSet(
-            distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
-                    template = cms.string(
-                        '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
-                    ),
-                    systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoElecTau % 'WplusJetsSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/WplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoElecTau % 'WplusJetsSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
                          )
-                    )
-                ),
-                AHtoElecTau = cms.PSet(
-                    template = cms.string(
-                        '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
-                    ),
-                    systematics = cms.vstring(AHtoElecTau_systematics),
-                    normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/WplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
 	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
-        TTplusJets = cms.PSet(
-            distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
-                    template = cms.string(
-                        '/harvested/TTplusJets/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
-                    ),
-                    systematics = cms.vstring(AHtoMuTau_systematics),
-                    normalization = cms.PSet(
-                         numEventsProcessed = cms.string(
-                             '/harvested/TTplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                         ),
-                         numEventsPassed = cms.string(
-                             '/harvested/TTplusJets/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                         )
-                    )
-                ),
-                AHtoElecTau = cms.PSet(
-                    template = cms.string(
-                        '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
-                    ),
-                    systematics = cms.vstring(AHtoElecTau_systematics),
-                    normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
-                    )
-                )
-            ),
-	    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
-        ),
+        ##TTplusJets = cms.PSet(
+        ##    distributions = cms.PSet(
+        ##        AHtoMuTau = cms.PSet(
+        ##            template = cms.string(
+        ##                dqmDirectoryTemplateAHtoMuTau % 'TTplusJets'
+        ##               + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+        ##            ),
+        ##            systematics = cms.vstring(AHtoMuTau_systematics),
+        ##            normalization = cms.PSet(
+        ##                 numEventsProcessed = cms.string(
+        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+        ##                 ),
+        ##                 numEventsPassed = cms.string(
+        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+        ##                 )
+        ##            )
+        ##        )
+        ##    ),
+        ##    outputFilePath = cms.string(""),
+	##    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
+        ##),
         gammaPlusJetsSum = cms.PSet(
             distributions = cms.PSet(
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'gammaPlusJetsSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
                     systematics = cms.vstring(AHtoElecTau_systematics),
                     normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/TTplusJetsSum/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'gammaPlusJetsSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'gammaPlusJetsSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
+                         )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
 	    outputFileName = cms.string("gammajets_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
         data = cms.PSet(
             distributions = cms.PSet(
                 AHtoMuTau = cms.PSet(
                     template = cms.string(
-                        '/harvested/data/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoMuTau % 'data'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
-                    systematics = cms.vstring(),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             '/harvested/data/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             '/harvested/data/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                            + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                             dqmDirectoryFilterStatAHtoMuTau % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                          )
                     )
                 ),
                 AHtoElecTau = cms.PSet(
                     template = cms.string(
-                        '/summed/harvested/Data/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/' \
-                       + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                        dqmDirectoryTemplateAHtoElecTau % 'Data'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoElecTau
                     ),
-                    systematics = cms.vstring(),
+                    systematics = cms.vstring(AHtoElecTau_systematics),
                     normalization = cms.PSet(
-                        numEventsProcessed = cms.string(
-                            '/summed/harvested/Data/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        ),
-                        numEventsPassed = cms.string(
-                            '/summed/harvested/Data/zElecTauAnalyzer/FilterStatistics/' \
-                           + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
-                        )
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'Data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoElecTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoElecTau % 'Data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoElecTau
+                         )
                     )
                 )
             ),
+            outputFilePath = cms.string(""),
 	    outputFileName = cms.string("data_#CHANNEL_OUTPUTFILENAME#.hst")
         )
     )
@@ -490,42 +416,41 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
     ##)
 )
 
-higgsMassPoints = [ '100', '130', '160', '200', 300' ]
 for higgsMassPoint in higgsMassPoints:
 
     pset = cms.PSet(
         distributions = cms.PSet(
             AHtoMuTau = cms.PSet(
                 template = cms.string(
-                    'harvested/A%sSum/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                   + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                    dqmDirectoryTemplateAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                   + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                 ),
                 systematics = cms.vstring(AHtoMuTau_systematics),
                 normalization = cms.PSet(
                     numEventsProcessed = cms.string(
-                        'harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                       + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                     ),
                     numEventsPassed = cms.string(
-                        'harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                       + '#SYSTEMATICSDIR#/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                     )
                 )
             ),
             AHtoElecTau = cms.PSet(
                 template = cms.string(
-                    'harvested/A%sSum/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/' \
-                   + '#SYSTEMATICSDIR#/DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass' % higgsMassPoint
+                    dqmDirectoryTemplateAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                   + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                 ),
-                systematics = cms.vstring(AHtoElecTau_systematics),
+                systematics = cms.vstring(),
                 normalization = cms.PSet(
                     numEventsProcessed = cms.string(
-                        'harvested/A%sSum/ahMuTauAnalyzer_woBtag/FilterStatistics/' \
-                       + '#SYSTEMATICSDIR#/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                     ),
                     numEventsPassed = cms.string(
-                        'harvested/A%sSum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
-                       + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1' % higgsMassPoint
+                        ('/export/harvested/A%sSum/ahElecTauAnalyzer_prediction/FilterStatistics/' \
+                       + '#SYSTEMATICSDIR#/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1') % higgsMassPoint
                     )
                 )
             )
@@ -536,71 +461,88 @@ for higgsMassPoint in higgsMassPoints:
     
     setattr(process.exportAnalysisResults.processes, "A%s" % higgsMassPoint, pset)
 
-process.compDQMEffXsec = cms.EDAnalyzer("DQMEffXsecCalculator",
+print("computing AHtoMuTau effectice cross-sections...")
+
+numeratorAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+denominatorAHtoMuTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+numEventsPassedAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+processEntryAHtoMuTau = cms.PSet(
+    efficiency = cms.PSet(
+        numerator = cms.string(numeratorAHtoMuTau),
+        denominator = cms.string(denominatorAHtoMuTau)
+    ),
+    numEventsPassed = cms.string(numEventsPassedAHtoMuTau),
+    dqmDirectory = cms.string('')
+)
+
+process.compDQMEffXsecAHtoMuTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI),
     channels = cms.PSet(
-        AHtoElecTau_QCD = cms.PSet(
-            efficiency = cms.PSet(
-                numerator = cms.string(
-                    'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-                ),
-                denominator = cms.string(
-                    'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                )
-            ),
-            numEventsPassed = cms.string(
-                'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            dqmDirectory = cms.string('harvested/qcdSum/zElecTauAnalyzer')
+        Ztautau = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/Ztautau/ahMuTauAnalyzer_woBtag')
         ),
-        AHtoElecTau_WplusJets = cms.PSet(
-            efficiency = cms.PSet(
-                numerator = cms.string(
-                    'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-                ),
-                denominator = cms.string(
-                    'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                )
-            ),
-            numEventsPassed = cms.string(
-                'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            dqmDirectory = cms.string('harvested/WplusJetsSum/zElecTauAnalyzer')
+        Zmumu = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/Zmumu/ahMuTauAnalyzer_woBtag')
         ),
-        AHtoElecTau_gammaPlusJets = cms.PSet(
-            efficiency = cms.PSet(
-                numerator = cms.string(
-                    'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-                ),
-                denominator = cms.string(
-                    'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                )
-            ),
-            numEventsPassed = cms.string(
-                'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-            ),
-            dqmDirectory = cms.string('harvested/gammaPlusSum/zElecTauAnalyzer')
+        QCD = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/qcdSum/ahMuTauAnalyzer_woBtag')
         ),
-        AHtoMuTau_QCD = cms.PSet(
-            efficiency = cms.PSet(
-                numerator = cms.string(
-                    'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-                ),
-                denominator = cms.string(
-                    'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-                )
-            ),
-            numEventsPassed = cms.string(
-                'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-            ),
-            dqmDirectory = cms.string('harvested/qcdSum/ahMuTauAnalyzer_woBtag')
+        WplusJets = processEntryAHtoMuTau.clone(
+            dqmDirectory = cms.string('/export/harvested/WplusJets/ahMuTauAnalyzer_woBtag')
+        ##),
+        ##TTplusJets = processEntryAHtoMuTau.clone(
+        ##    dqmDirectory = cms.string('/export/harvested/TTplusJets/ahMuTauAnalyzer_woBtag')
+        )
+    )
+)
+
+print("computing AHtoElecTau effectice cross-sections...")
+
+numeratorAHtoElecTau = 'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
+denominatorAHtoElecTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
+numEventsPassedAHtoElecTau = 'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
+processEntryAHtoElecTau = cms.PSet(
+    efficiency = cms.PSet(
+        numerator = cms.string(numeratorAHtoElecTau),
+        denominator = cms.string(denominatorAHtoElecTau)
+    ),
+    numEventsPassed = cms.string(numEventsPassedAHtoElecTau),
+    dqmDirectory = cms.string('')
+)
+
+process.compDQMEffXsecAHtoElecTau = cms.EDAnalyzer("DQMEffXsecCalculator",
+    dataIntLumi = cms.double(32.0),
+    channels = cms.PSet(
+        Ztautau = processEntryAHtoElecTau.clone(
+            dqmDirectory = cms.string('/export/summed/harvested/Ztautau/zElecTauAnalyzer')
+        ),
+        Zee = processEntryAHtoElecTau.clone(
+            dqmDirectory = cms.string('/export/summed/harvested/Zee/zElecTauAnalyzer')
+        ),
+        QCD = processEntryAHtoElecTau.clone(
+            dqmDirectory = cms.string('/export/summed/harvested/qcdSum/zElecTauAnalyzer')
+        ),
+        WplusJets = processEntryAHtoElecTau.clone(
+            dqmDirectory = cms.string('/export/summed/harvested/WplusJetsSum/zElecTauAnalyzer')
+        ),
+        ##TTplusJets = processEntryAHtoElecTau.clone(
+        ##    dqmDirectory = cms.string('/export/summed/harvested/TTplusJets/zElecTauAnalyzer')
+        ##),
+        gammaPlusJets = processEntryAHtoElecTau.clone(
+            dqmDirectory = cms.string('/export/summed/harvested/gammaPlusJetsSum/zElecTauAnalyzer')
         )
     )
 )
 
 process.p = cms.Path(
     process.loadAnalysisResults
-  #+ process.dumpDQMStore 
-   + process.exportAnalysisResults_woBtag
-   + process.compDQMEffXsec
+   + process.sumAHtoElecTau
+   + process.compAHtoElecTauPrediction
+   + process.dumpDQMStore 
+   + process.exportAnalysisResults
+   + process.compDQMEffXsecAHtoMuTau 
+   + process.compDQMEffXsecAHtoElecTau
 )
+
+# print-out all python configuration parameter information
+print process.dumpPython()
