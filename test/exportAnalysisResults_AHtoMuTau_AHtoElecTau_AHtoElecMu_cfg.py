@@ -769,8 +769,10 @@ process.compDQMEffXsecAHtoElecMu = cms.EDAnalyzer("DQMEffXsecCalculator",
 
 process.p = cms.Path(
     process.loadAnalysisResults
+   ##+ process.dumpDQMStore 
    + process.sumAHtoElecTau
    + process.sumAHtoElecMu
+   ##+ process.dumpDQMStore  
    + process.compAHtoElecTauPrediction
    + process.compAHtoElecMuPrediction
    ##+ process.dumpDQMStore 
