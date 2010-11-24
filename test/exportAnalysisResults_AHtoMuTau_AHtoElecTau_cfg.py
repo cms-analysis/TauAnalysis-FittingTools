@@ -123,7 +123,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         )
     ),
 
-    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/export"),                 
+    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/export_AHtoMuTau_AHtoElecTau"),                 
 
     processes = cms.PSet(
         Ztautau = cms.PSet(
@@ -538,11 +538,11 @@ process.p = cms.Path(
     process.loadAnalysisResults
    + process.sumAHtoElecTau
    + process.compAHtoElecTauPrediction
-   + process.dumpDQMStore 
+   ##+ process.dumpDQMStore 
    + process.exportAnalysisResults
    + process.compDQMEffXsecAHtoMuTau 
    + process.compDQMEffXsecAHtoElecTau
 )
 
 # print-out all python configuration parameter information
-print process.dumpPython()
+#print process.dumpPython()

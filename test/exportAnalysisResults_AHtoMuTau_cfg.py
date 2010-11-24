@@ -58,7 +58,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         )
     ),
 
-    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/export"),                 
+    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/export_AHtoMuTau"),                 
 
     processes = cms.PSet(
         Ztautau = cms.PSet(
