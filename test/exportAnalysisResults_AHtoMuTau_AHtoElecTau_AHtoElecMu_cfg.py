@@ -17,12 +17,13 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource")
 
-higgsMassPoints = [ '100', '130', '160', '200', '300' ]
+higgsMassPoints = [ '90', '100', '120', '160', '180', '200', '250', '350' ]
 
 process.loadAnalysisResults = cms.EDAnalyzer("DQMFileLoader",
     all = cms.PSet(
         inputFileNames = cms.vstring(
-            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_skimmed.root',
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_1_skimmed.root',
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_2_skimmed.root',
             '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsZtoElecTau_skimmed.root',
             '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsZtoElecMu_skimmed.root'
         ),
@@ -138,18 +139,21 @@ AHtoElecMu_systematics = [
 dqmDirectoryTemplateAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/'
 dqmDirectoryFilterStatAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/FilterStatistics/'
 meNameTemplateAHtoMuTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+#meNameTemplateAHtoMuTau = 'DiTauCandidateQuantities/VisMass'
 meNameNumEventsProcessedAHtoMuTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
 meNameNumEventsPassedAHtoMuTau = 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
 
 dqmDirectoryTemplateAHtoElecTau = '/export/summed/harvested/%s/zElecTauAnalyzer/afterEvtSelElecTauPairZeeHypothesisVeto/'
 dqmDirectoryFilterStatAHtoElecTau = '/export/summed/harvested/%s/zElecTauAnalyzer/FilterStatistics/'
 meNameTemplateAHtoElecTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+#meNameTemplateAHtoElecTau = 'DiTauCandidateQuantities/VisMass'
 meNameNumEventsProcessedAHtoElecTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
 meNameNumEventsPassedAHtoElecTau = 'evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
 
 dqmDirectoryTemplateAHtoElecMu = '/export/harvested/%s/zElecMuAnalyzer/afterEvtSelDiMuZMass/'
 dqmDirectoryFilterStatAHtoElecMu = '/export/harvested/%s/zElecMuAnalyzer/FilterStatistics/'
 meNameTemplateAHtoElecMu = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
+#meNameTemplateAHtoElecMu = 'DiTauCandidateQuantities/VisMass'
 meNameNumEventsProcessedAHtoElecMu = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
 meNameNumEventsPassedAHtoElecMu = 'evtSelDiMuZMass/passed_cumulative_numWeighted#a1#s1'
 
@@ -160,9 +164,10 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             name = cms.string("AHtoMuTau"),
             shortName = cms.string("ma"),
             binning = cms.string(
-                dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                dqmDirectoryTemplateAHtoMuTau % 'ZtautauPU156bx'
                + meNameTemplateAHtoMuTau
-            )
+            ),
+            dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI)
         ),
         cms.PSet(
             name = cms.string("AHtoElecTau"),
@@ -170,7 +175,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             binning = cms.string(
                 dqmDirectoryTemplateAHtoElecTau % 'Ztautau'
                + meNameTemplateAHtoElecTau
-            )
+            ),
+            dataIntLumi = cms.double(32.0)
         ),
         cms.PSet(
             name = cms.string("AHtoElecMu"),
@@ -178,7 +184,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             binning = cms.string(
                 dqmDirectoryTemplateAHtoElecMu % 'Ztautau'
                + meNameTemplateAHtoElecMu
-            )
+            ),
+            dataIntLumi = cms.double(35.0)
         )
     ),
 
@@ -189,17 +196,17 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             distributions = cms.PSet(
                 AHtoMuTau = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                        dqmDirectoryTemplateAHtoMuTau % 'ZtautauPU156bx'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                             dqmDirectoryFilterStatAHtoMuTau % 'ZtautauPU156bx'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                             dqmDirectoryFilterStatAHtoMuTau % 'ZtautauPU156bx'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
                          )
                     )
@@ -239,6 +246,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['qqZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("ztt_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -279,6 +288,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("zee_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -319,6 +329,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),                                   
 	    outputFileName = cms.string("zmm_#CHANNEL_OUTPUTFILENAME#.hst")
         ),                                      
@@ -433,28 +444,31 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['Wenu']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['Wmunu']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['Wtaunu']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
         TTplusJets = cms.PSet(
             distributions = cms.PSet(
-        ##        AHtoMuTau = cms.PSet(
-        ##            template = cms.string(
-        ##                dqmDirectoryTemplateAHtoMuTau % 'TTplusJets'
-        ##               + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
-        ##            ),
-        ##            systematics = cms.vstring(AHtoMuTau_systematics),
-        ##            normalization = cms.PSet(
-        ##                 numEventsProcessed = cms.string(
-        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
-        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
-        ##                 ),
-        ##                 numEventsPassed = cms.string(
-        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
-        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
-        ##                 )
-        ##            )
-        ##        ),
+                AHtoMuTau = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau % 'TTplusJets'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                         )
+                    )
+                ),
                  AHtoElecMu = cms.PSet(
                     template = cms.string(
                         dqmDirectoryTemplateAHtoElecMu % 'TTplusJets'
@@ -473,6 +487,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 ) 
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['TTplusJets']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -653,6 +668,10 @@ for higgsMassPoint in higgsMassPoints:
         outputFilePath = cms.string("m%s" % higgsMassPoint),
         outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst")
     )
+
+    xSection_gg = AHtoMuTauSpecific_RECO_SAMPLES['A%s' % higgsMassPoint]['x_sec']
+    xSection_bb = AHtoMuTauSpecific_RECO_SAMPLES['bbA%s' % higgsMassPoint]['x_sec']
+    setattr(pset, "xSection", cms.double(xSection_gg + xSection_bb))
     
     setattr(process.exportAnalysisResults.processes, "A%s" % higgsMassPoint, pset)
 
@@ -673,20 +692,8 @@ processEntryAHtoMuTau = cms.PSet(
 process.compDQMEffXsecAHtoMuTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI),
     channels = cms.PSet(
-        Ztautau = processEntryAHtoMuTau.clone(
-            dqmDirectory = cms.string('/export/harvested/Ztautau/ahMuTauAnalyzer_woBtag')
-        ),
-        Zmumu = processEntryAHtoMuTau.clone(
-            dqmDirectory = cms.string('/export/harvested/Zmumu/ahMuTauAnalyzer_woBtag')
-        ),
         QCD = processEntryAHtoMuTau.clone(
             dqmDirectory = cms.string('/export/harvested/qcdSum/ahMuTauAnalyzer_woBtag')
-        ),
-        WplusJets = processEntryAHtoMuTau.clone(
-            dqmDirectory = cms.string('/export/harvested/WplusJets/ahMuTauAnalyzer_woBtag')
-        ##),
-        ##TTplusJets = processEntryAHtoMuTau.clone(
-        ##    dqmDirectory = cms.string('/export/harvested/TTplusJets/ahMuTauAnalyzer_woBtag')
         )
     )
 )
@@ -708,21 +715,9 @@ processEntryAHtoElecTau = cms.PSet(
 process.compDQMEffXsecAHtoElecTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(32.0),
     channels = cms.PSet(
-        Ztautau = processEntryAHtoElecTau.clone(
-            dqmDirectory = cms.string('/export/summed/harvested/Ztautau/zElecTauAnalyzer')
-        ),
-        Zee = processEntryAHtoElecTau.clone(
-            dqmDirectory = cms.string('/export/summed/harvested/Zee/zElecTauAnalyzer')
-        ),
         QCD = processEntryAHtoElecTau.clone(
             dqmDirectory = cms.string('/export/summed/harvested/qcdSum/zElecTauAnalyzer')
         ),
-        WplusJets = processEntryAHtoElecTau.clone(
-            dqmDirectory = cms.string('/export/summed/harvested/WplusJetsSum/zElecTauAnalyzer')
-        ),
-        ##TTplusJets = processEntryAHtoElecTau.clone(
-        ##    dqmDirectory = cms.string('/export/summed/harvested/TTplusJets/zElecTauAnalyzer')
-        ##),
         gammaPlusJets = processEntryAHtoElecTau.clone(
             dqmDirectory = cms.string('/export/summed/harvested/gammaPlusJetsSum/zElecTauAnalyzer')
         )
@@ -746,23 +741,8 @@ processEntryAHtoElecMu = cms.PSet(
 process.compDQMEffXsecAHtoElecMu = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(35.0),
     channels = cms.PSet(
-        Ztautau = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/Ztautau/zElecMuAnalyzer')
-        ),
-        Zee = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/Zee/zElecMuAnalyzer')
-        ),
-        Zmumu = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/Zmumu/zElecMuAnalyzer')
-        ),
         QCD = processEntryAHtoElecMu.clone(
             dqmDirectory = cms.string('/export/harvested/qcdSum/zElecMuAnalyzer')
-        ),
-        WplusJets = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/WplusJetsSum/zElecMuAnalyzer')
-        ),
-        TTplusJets = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/TTplusJets/zElecMuAnalyzer')
         )
     )
 )

@@ -111,7 +111,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             binning = cms.string(
                 dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
                + meNameTemplateAHtoMuTau
-            )
+            ),
+            dataIntLumi = cms.double(35.0)
         ),
         cms.PSet(
             name = cms.string("AHtoElecTau"),
@@ -119,7 +120,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             binning = cms.string(
                 dqmDirectoryTemplateAHtoElecTau % 'Ztautau'
                + meNameTemplateAHtoElecTau
-            )
+            ),
+            dataIntLumi = cms.double(32.0)
         )
     ),
 
@@ -163,6 +165,8 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['qqZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("ztt_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -186,6 +190,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("zee_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -209,6 +214,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['ZtautauPU156bx']['x_sec']),
             outputFilePath = cms.string(""),                                   
 	    outputFileName = cms.string("zmm_#CHANNEL_OUTPUTFILENAME#.hst")
         ),                                      
@@ -289,6 +295,9 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
                     )
                 )
             ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['Wenu']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['Wmunu']['x_sec']
+                                 + ZtoMuTau.RECO_SAMPLES['Wtaunu']['x_sec']),
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
@@ -312,6 +321,7 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         ##            )
         ##        )
         ##    ),
+        ##    xSection = cms.double(ZtoMuTau.RECO_SAMPLES['TTplusJets']['x_sec']),
         ##    outputFilePath = cms.string(""),
 	##    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
         ##),
@@ -458,6 +468,10 @@ for higgsMassPoint in higgsMassPoints:
         outputFilePath = cms.string("m%s" % higgsMassPoint),
         outputFileName = cms.string("A_#CHANNEL_OUTPUTFILENAME#.hst")
     )
+
+    xSection_gg = AHtoMuTauSpecific_RECO_SAMPLES['A%s' % higgsMassPoint]['x_sec']
+    xSection_bb = AHtoMuTauSpecific_RECO_SAMPLES['bbA%s' % higgsMassPoint]['x_sec']
+    setattr(pset, "xSection", cms.double(xSection_gg + xSection_bb))
     
     setattr(process.exportAnalysisResults.processes, "A%s" % higgsMassPoint, pset)
 
