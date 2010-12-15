@@ -17,12 +17,13 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource")
 
-higgsMassPoints = [ '100', '130', '160', '200', '300' ]
+higgsMassPoints = [ '90', '100', '130', '160', '200', '250', '350' ]
 
 process.loadAnalysisResults = cms.EDAnalyzer("DQMFileLoader",
     all = cms.PSet(
         inputFileNames = cms.vstring(
-            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_skimmed.root'
+            ##'/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_skimmed.root'
+            '/data1/veelken/CMSSW_3_8_x/plots/MSSM_Higgs_combined/plotsAHtoMuTau_TaNCloose_skimmed.root'
         ),
         dqmDirectory_store = cms.string('/export')
     )
@@ -39,45 +40,78 @@ AHtoMuTau_systematics = [
 ##    'jetEnDown'
 ]
 
-dqmDirectoryTemplateAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/afterEvtSelNonCentralJetEt20bTag/'
-dqmDirectoryFilterStatAHtoMuTau = '/export/harvested/%s/ahMuTauAnalyzer_woBtag/FilterStatistics/'
+dqmDirectoryTemplateAHtoMuTau_woBtag = \
+  '/export/harvested/%s/ahMuTauAnalyzerOS_woBtag/afterEvtSelDiTauCandidateForAHtoMuTauZeroCharge/'
+dqmDirectoryFilterStatAHtoMuTau_woBtag = \
+  '/export/harvested/%s/ahMuTauAnalyzerOS_woBtag/FilterStatistics/'
+dqmDirectoryTemplateAHtoMuTau_wBtag = \
+  '/export/harvested/%s/ahMuTauAnalyzerOS_wBtag/afterEvtSelDiTauCandidateForAHtoMuTauZeroCharge/'
+dqmDirectoryFilterStatAHtoMuTau_wBtag = \
+  '/export/harvested/%s/ahMuTauAnalyzerOS_wBtag/FilterStatistics/'
 meNameTemplateAHtoMuTau = 'DiTauCandidateSVfitQuantities/psKine_MEt_ptBalance/Mass'
 meNameNumEventsProcessedAHtoMuTau = 'genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-meNameNumEventsPassedAHtoMuTau = 'evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
+meNameNumEventsPassedAHtoMuTau_woBtag = 'evtSelDiTauCandidateForAHtoMuTauZeroCharge/passed_cumulative_numWeighted#a1#s1'
+meNameNumEventsPassedAHtoMuTau_wBtag = 'evtSelDiTauCandidateForAHtoMuTauZeroCharge/passed_cumulative_numWeighted#a1#s1'
 
 process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
 
     channels = cms.VPSet(
         cms.PSet(
-            name = cms.string("AHtoMuTau"),
+            name = cms.string("AHtoMuTau_woBtag"),
             shortName = cms.string("ma"),
             binning = cms.string(
-                dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                dqmDirectoryTemplateAHtoMuTau_woBtag % 'ZtautauSum'
                + meNameTemplateAHtoMuTau
             ),
-            dataIntLumi = cms.double(35.0)
+            dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI)
+        ),
+        cms.PSet(
+            name = cms.string("AHtoMuTau_wBtag"),
+            shortName = cms.string("mab"),
+            binning = cms.string(
+                dqmDirectoryTemplateAHtoMuTau_wBtag % 'ZtautauSum'
+               + meNameTemplateAHtoMuTau
+            ),
+            dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI)
         )
     ),
 
-    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/export_AHtoMuTau"),                 
+    outputFilePath = cms.string("/data1/veelken/CMSSW_3_8_x/plots/export_AHtoMuTau_TaNCloose"),                 
 
     processes = cms.PSet(
         Ztautau = cms.PSet(
             distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'Ztautau'
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'ZtautauSum'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'ZtautauSum'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Ztautau'
-                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'ZtautauSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+                AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'ZtautauSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'ZtautauSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'ZtautauSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                          )
                     )
                 )
@@ -89,20 +123,37 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         ),
         Zmumu = cms.PSet(
             distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'Zmumu'
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'Zmumu'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'Zmumu'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'Zmumu'
-                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+                AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'Zmumu'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'Zmumu'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                          )
                     )
                 )
@@ -113,20 +164,37 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         ),                                      
         QCD = cms.PSet(
             distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'qcdSum'
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'qcdSum'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'qcdSum'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'qcdSum'
-                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+                AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'qcdSum'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'qcdSum'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                          )
                     )
                 )
@@ -136,20 +204,37 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
         ),    
         WplusJets = cms.PSet(
             distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'WplusJets'
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'WplusJets'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'WplusJets'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'WplusJets'
-                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+	        AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'WplusJets'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'WplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                          )
                     )
                 )
@@ -160,46 +245,80 @@ process.exportAnalysisResults = cms.EDAnalyzer("DQMExportAnalysisResults",
             outputFilePath = cms.string(""),
 	    outputFileName = cms.string("wjets_#CHANNEL_OUTPUTFILENAME#.hst")
         ),
-        ##TTplusJets = cms.PSet(
-        ##    distributions = cms.PSet(
-        ##        AHtoMuTau = cms.PSet(
-        ##            template = cms.string(
-        ##                dqmDirectoryTemplateAHtoMuTau % 'TTplusJets'
-        ##               + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
-        ##            ),
-        ##            systematics = cms.vstring(AHtoMuTau_systematics),
-        ##            normalization = cms.PSet(
-        ##                 numEventsProcessed = cms.string(
-        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
-        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
-        ##                 ),
-        ##                 numEventsPassed = cms.string(
-        ##                     dqmDirectoryFilterStatAHtoMuTau % 'TTplusJets'
-        ##                    + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
-        ##                 )
-        ##            )
-        ##        )
-        ##    ),
-        ##    xSection = cms.double(ZtoMuTau.RECO_SAMPLES['TTplusJets']['x_sec']),
-        ##    outputFilePath = cms.string(""),
-	##    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
-        ##),
-        data = cms.PSet(
+        TTplusJets = cms.PSet(
             distributions = cms.PSet(
-                AHtoMuTau = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
                     template = cms.string(
-                        dqmDirectoryTemplateAHtoMuTau % 'data'
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'TTplusJets'
                        + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                     ),
                     systematics = cms.vstring(AHtoMuTau_systematics),
                     normalization = cms.PSet(
                          numEventsProcessed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'data'
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'TTplusJets'
                             + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                          ),
                          numEventsPassed = cms.string(
-                             dqmDirectoryFilterStatAHtoMuTau % 'data'
-                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'TTplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+	        AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'TTplusJets'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'TTplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'TTplusJets'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
+                         )
+                    )
+                )
+            ),
+            xSection = cms.double(ZtoMuTau.RECO_SAMPLES['TTplusJets']['x_sec']),
+            outputFilePath = cms.string(""),
+	    outputFileName = cms.string("ttbar_#CHANNEL_OUTPUTFILENAME#.hst")
+        ),
+        data = cms.PSet(
+            distributions = cms.PSet(
+                AHtoMuTau_woBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_woBtag % 'data'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_woBtag % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                         )
+                    )
+                ),
+		AHtoMuTau_wBtag = cms.PSet(
+                    template = cms.string(
+                        dqmDirectoryTemplateAHtoMuTau_wBtag % 'data'
+                       + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                    ),
+                    systematics = cms.vstring(AHtoMuTau_systematics),
+                    normalization = cms.PSet(
+                         numEventsProcessed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                         ),
+                         numEventsPassed = cms.string(
+                             dqmDirectoryFilterStatAHtoMuTau_wBtag % 'data'
+                            + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                          )
                     )
                 )
@@ -241,20 +360,37 @@ for higgsMassPoint in higgsMassPoints:
 
     pset = cms.PSet(
         distributions = cms.PSet(
-            AHtoMuTau = cms.PSet(
+            AHtoMuTau_woBtag = cms.PSet(
                 template = cms.string(
-                    dqmDirectoryTemplateAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                    dqmDirectoryTemplateAHtoMuTau_woBtag % ('A%sSum' % higgsMassPoint)
                    + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
                 ),
                 systematics = cms.vstring(AHtoMuTau_systematics),
                 normalization = cms.PSet(
                     numEventsProcessed = cms.string(
-                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
+                        dqmDirectoryFilterStatAHtoMuTau_woBtag % ('A%sSum' % higgsMassPoint)
                        + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
                     ),
                     numEventsPassed = cms.string(
-                        dqmDirectoryFilterStatAHtoMuTau % ('A%sSum' % higgsMassPoint)
-                       + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau
+                        dqmDirectoryFilterStatAHtoMuTau_woBtag % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_woBtag
+                    )
+                )
+            ),
+	    AHtoMuTau_wBtag = cms.PSet(
+                template = cms.string(
+                    dqmDirectoryTemplateAHtoMuTau_wBtag % ('A%sSum' % higgsMassPoint)
+                   + '#SYSTEMATICSDIR#/' + meNameTemplateAHtoMuTau
+                ),
+                systematics = cms.vstring(AHtoMuTau_systematics),
+                normalization = cms.PSet(
+                    numEventsProcessed = cms.string(
+                        dqmDirectoryFilterStatAHtoMuTau_wBtag % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsProcessedAHtoMuTau
+                    ),
+                    numEventsPassed = cms.string(
+                        dqmDirectoryFilterStatAHtoMuTau_wBtag % ('A%sSum' % higgsMassPoint)
+                       + '#SYSTEMATICSDIR#/' + meNameNumEventsPassedAHtoMuTau_wBtag
                     )
                 )
             )
@@ -271,15 +407,12 @@ for higgsMassPoint in higgsMassPoints:
 
 print("computing AHtoMuTau effectice cross-sections...")
 
-numeratorAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-denominatorAHtoMuTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-numEventsPassedAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
 processEntryAHtoMuTau = cms.PSet(
     efficiency = cms.PSet(
-        numerator = cms.string(numeratorAHtoMuTau),
-        denominator = cms.string(denominatorAHtoMuTau)
+        numerator = cms.string(meNameNumEventsPassedAHtoMuTau_woBtag),
+        denominator = cms.string(meNameNumEventsProcessedAHtoMuTau)
     ),
-    numEventsPassed = cms.string(numEventsPassedAHtoMuTau),
+    numEventsPassed = cms.string(meNameNumEventsPassedAHtoMuTau_woBtag),
     dqmDirectory = cms.string('')
 )
 
@@ -287,10 +420,7 @@ process.compDQMEffXsecAHtoMuTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI),
     channels = cms.PSet(
         QCD = processEntryAHtoMuTau.clone(
-            dqmDirectory = cms.string('/export/harvested/qcdSum/ahMuTauAnalyzer_woBtag')
-        ##),
-        ##TTplusJets = processEntryAHtoMuTau.clone(
-        ##    dqmDirectory = cms.string('/export/harvested/TTplusJets/ahMuTauAnalyzer_woBtag')
+            dqmDirectory = cms.string(dqmDirectoryFilterStatAHtoMuTau_woBtag % "qcdSum")
         )
     )
 )

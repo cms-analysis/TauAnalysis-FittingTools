@@ -17,7 +17,7 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource")
 
-higgsMassPoints = [ '90', '100', '120', '160', '180', '200', '250', '350' ]
+higgsMassPoints = [ '90', '100', '130', '160', '200', '250', '350' ]
 
 process.loadAnalysisResults = cms.EDAnalyzer("DQMFileLoader",
     all = cms.PSet(
@@ -677,15 +677,12 @@ for higgsMassPoint in higgsMassPoints:
 
 print("computing AHtoMuTau effectice cross-sections...")
 
-numeratorAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
-denominatorAHtoMuTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-numEventsPassedAHtoMuTau = 'FilterStatistics/evtSelNonCentralJetEt20bTag/passed_cumulative_numWeighted#a1#s1'
 processEntryAHtoMuTau = cms.PSet(
     efficiency = cms.PSet(
-        numerator = cms.string(numeratorAHtoMuTau),
-        denominator = cms.string(denominatorAHtoMuTau)
+        numerator = cms.string(meNameNumEventsPassedAHtoMuTau_woBtag),
+        denominator = cms.string(meNameNumEventsProcessedAHtoMuTau)
     ),
-    numEventsPassed = cms.string(numEventsPassedAHtoMuTau),
+    numEventsPassed = cms.string(meNameNumEventsPassedAHtoMuTau_woBtag),
     dqmDirectory = cms.string('')
 )
 
@@ -693,22 +690,19 @@ process.compDQMEffXsecAHtoMuTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(ZtoMuTau.TARGET_LUMI),
     channels = cms.PSet(
         QCD = processEntryAHtoMuTau.clone(
-            dqmDirectory = cms.string('/export/harvested/qcdSum/ahMuTauAnalyzer_woBtag')
+            dqmDirectory = cms.string(dqmDirectoryFilterStatAHtoMuTau_woBtag % "qcdSum")
         )
     )
 )
 
 print("computing AHtoElecTau effectice cross-sections...")
 
-numeratorAHtoElecTau = 'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
-denominatorAHtoElecTau = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-numEventsPassedAHtoElecTau = 'FilterStatistics/evtSelElecTauPairZeeHypothesisVeto/passed_cumulative_numWeighted#a1#s1'
 processEntryAHtoElecTau = cms.PSet(
     efficiency = cms.PSet(
-        numerator = cms.string(numeratorAHtoElecTau),
-        denominator = cms.string(denominatorAHtoElecTau)
+        numerator = cms.string(meNameNumEventsPassedAHtoElecTau),
+        denominator = cms.string(meNameNumEventsProcessedAHtoMuTau)
     ),
-    numEventsPassed = cms.string(numEventsPassedAHtoElecTau),
+    numEventsPassed = cms.string(meNameNumEventsPassedAHtoElecTau),
     dqmDirectory = cms.string('')
 )
 
@@ -716,25 +710,22 @@ process.compDQMEffXsecAHtoElecTau = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(32.0),
     channels = cms.PSet(
         QCD = processEntryAHtoElecTau.clone(
-            dqmDirectory = cms.string('/export/summed/harvested/qcdSum/zElecTauAnalyzer')
+            dqmDirectory = cms.string(dqmDirectoryFilterStatAHtoElecTau % "qcdSum")
         ),
         gammaPlusJets = processEntryAHtoElecTau.clone(
-            dqmDirectory = cms.string('/export/summed/harvested/gammaPlusJetsSum/zElecTauAnalyzer')
+            dqmDirectory = cms.string(dqmDirectoryFilterStatAHtoElecTau % "gammaPlusJetsSum")
         )
     )
 )
 
 print("computing AHtoElecMu effectice cross-sections...")
 
-numeratorAHtoElecMu = 'FilterStatistics/evtSelDiMuZMass/passed_cumulative_numWeighted#a1#s1'
-denominatorAHtoElecMu = 'FilterStatistics/genPhaseSpaceCut/passed_cumulative_numWeighted#a1#s1'
-numEventsPassedAHtoElecMu = 'FilterStatistics/evtSelDiMuZMass/passed_cumulative_numWeighted#a1#s1'
 processEntryAHtoElecMu = cms.PSet(
     efficiency = cms.PSet(
-        numerator = cms.string(numeratorAHtoElecMu),
-        denominator = cms.string(denominatorAHtoElecMu)
+        numerator = cms.string(meNameNumEventsPassedAHtoElecMu),
+        denominator = cms.string(meNameNumEventsProcessedAHtoElecMu)
     ),
-    numEventsPassed = cms.string(numEventsPassedAHtoElecMu),
+    numEventsPassed = cms.string(meNameNumEventsPassedAHtoElecMu),
     dqmDirectory = cms.string('')
 )
 
@@ -742,7 +733,7 @@ process.compDQMEffXsecAHtoElecMu = cms.EDAnalyzer("DQMEffXsecCalculator",
     dataIntLumi = cms.double(35.0),
     channels = cms.PSet(
         QCD = processEntryAHtoElecMu.clone(
-            dqmDirectory = cms.string('/export/harvested/qcdSum/zElecMuAnalyzer')
+            dqmDirectory = cms.string(dqmDirectoryFilterStatAHtoElecMu % "qcdSum")
         )
     )
 )
