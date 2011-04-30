@@ -15,9 +15,9 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.2 $
+ * \version $Revision: 1.3 $
  *
- * $Id: TauDecayKinePdf.h,v 1.2 2011/04/30 16:52:14 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.3 2011/04/30 17:57:14 veelken Exp $
  *
  */
 
@@ -42,10 +42,10 @@ class TauDecayKinePdf : public RooAbsPdf
   virtual ~TauDecayKinePdf();
 
   virtual TObject* clone(const char* newName) const { return new TauDecayKinePdf(*this, newName); }
-/*
+
   Int_t getAnalyticalIntegral(RooArgSet&, RooArgSet&, const char* = 0) const;
   Double_t analyticalIntegral(Int_t, const char* = 0) const;
- */
+ 
   void print(std::ostream&) const;
 
  protected:

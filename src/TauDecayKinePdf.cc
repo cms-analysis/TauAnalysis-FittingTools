@@ -144,7 +144,7 @@ void TauDecayKinePdf::updateNormFactor1to2() const
 //
 //-------------------------------------------------------------------------------
 //
-/*
+
 Int_t TauDecayKinePdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char*) const 
 {
   if ( matchArgs(allVars, analVars, x_) ) return 1 ;
@@ -162,27 +162,51 @@ Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char* rangeName) 
   if ( code == 1 ) {  
     updateNormFactor0to1();
     updateNormFactor1to2();
+
+    double xMin = x_.min(rangeName);
+    double xMax = x_.max(rangeName);
     
     double gaussian_integral = 0.;
 
-    if ( gsigma_ > 0. ) {
-      Double_t sqrt2_times_sigma = TMath::Sqrt(2.)*gsigma_;
-      gaussian_integral += C_*TMath::Sqrt(0.5*TMath::Pi())*gsigma_
-               *(TMath::Erf(gmean_/sqrt2_times_sigma) + TMath::Erf((x0_ - gmean_)/sqrt2_times_sigma));
+    double xMin_gaussian = xMin;
+    double xMax_gaussian = TMath::Min(xMax, x0_);
+
+    if ( xMax_gaussian > xMin_gaussian ) {
+      if ( gsigma_ > 0. ) {
+	Double_t sqrt2_times_sigma = TMath::Sqrt(2.)*gsigma_;
+	gaussian_integral += 
+	  C_*TMath::Sqrt(0.5*TMath::Pi())*gsigma_
+	 *(TMath::Erf((xMax_gaussian - gmean_)/sqrt2_times_sigma) - TMath::Erf((xMin_gaussian - gmean_)/sqrt2_times_sigma));
+      }
+
+      gaussian_integral += 
+	(1. - C_)*(0.5*slope_*(xMax_gaussian*xMax_gaussian - xMin_gaussian*xMin_gaussian)  + offset_*(xMax_gaussian - xMin_gaussian));
     }
 
-    gaussian_integral += (1. - C_)*(0.5*slope_*x0_*x0_ + offset_*x0_);
-
     if ( this->verbosity_ ) std::cout << "--> gaussian_integral = " << gaussian_integral << std::endl;
+    
+    double landau_integral = 0.;
 
-    double x1 = x0_ + dx1_;
-    if ( x1 > x_.max(rangeName) ) x1 = x_.max(rangeName);
-
-    double landau_integral = norm0to1_*width_
-                            *(::ROOT::Math::landau_cdf((x1 - mp_)/width_) - ::ROOT::Math::landau_cdf((x0_ - mp_)/width_));
+    double xMin_landau = TMath::Max(xMin, x0_);
+    double xMax_landau = TMath::Min(xMax, x0_ + dx1_);
+    
+    if ( xMax_landau > xMin_landau ) {
+      landau_integral += 
+	norm0to1_*width_
+       *(::ROOT::Math::landau_cdf((xMax_landau - mp_)/width_) - ::ROOT::Math::landau_cdf((xMin_landau - mp_)/width_));
+    }
+     
     if ( this->verbosity_ ) std::cout << "--> landau_integral = " << landau_integral << std::endl;
     
-    double exponential_integral = norm1to2_*(1./alpha_)*TMath::Exp(-alpha_*x1) - TMath::Exp(-alpha_*x_.max(rangeName));
+    double exponential_integral = 0.;
+
+    double xMin_exponential = TMath::Max(xMin, x0_ + dx1_);
+    double xMax_exponential = xMax;
+
+    if ( xMax_exponential > xMin_exponential ) {
+      exponential_integral += norm1to2_*(1./alpha_)*(TMath::Exp(-alpha_*xMin_exponential) - TMath::Exp(-alpha_*xMax_exponential));
+    }
+
     if ( this->verbosity_ ) std::cout << "--> exponential_integral = " << exponential_integral << std::endl;
     
     retVal = gaussian_integral + landau_integral + exponential_integral;
@@ -190,7 +214,7 @@ Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char* rangeName) 
 
   return retVal;
 }
- */ 
+ 
 //
 //-------------------------------------------------------------------------------
 //
