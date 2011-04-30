@@ -18,14 +18,20 @@ TauDecayKinePdf::TauDecayKinePdf()
 TauDecayKinePdf::TauDecayKinePdf(
   const char* name, const char* title, 
   RooAbsReal& x, 
-  RooAbsReal& gmean, RooAbsReal& g2sigma, RooAbsReal& g4sigma, RooAbsReal& C, RooAbsReal& mp, RooAbsReal& width, RooAbsReal& alpha,
+  RooAbsReal& gmean, RooAbsReal& gsigma, RooAbsReal& slope, RooAbsReal& offset,  RooAbsReal& C,
+  //RooAbsReal& kappa, RooAbsReal& theta, RooAbsReal& mu, 
+  RooAbsReal& mp, RooAbsReal& width, RooAbsReal& alpha,
   RooAbsReal& x0, RooAbsReal& dx1)
   : RooAbsPdf(name, title), 
     x_("x", "x", this, x),
     gmean_("gmean", "gmean", this, gmean),
-    g2sigma_("g2sigma", "g2sigma", this, g2sigma),
-    g4sigma_("g4sigma", "g4sigma", this, g4sigma),
+    gsigma_("gsigma", "gsigma", this, gsigma),
+    slope_("slope", "slope", this, slope),
+    offset_("offset", "offset", this, offset),
     C_("C", "C", this, C),
+    //kappa_("kappa", "kappa", this, kappa),
+    //theta_("theta", "theta", this, theta),
+    //mu_("mu", "mu", this, mu),
     mp_("mp", "mp", this, mp),
     width_("width", "width", this, width),
     alpha_("alpha", "alpha", this, alpha),
@@ -40,9 +46,13 @@ TauDecayKinePdf::TauDecayKinePdf(const TauDecayKinePdf& bluePrint, const char* n
   : RooAbsPdf(bluePrint, newName), 
     x_("x", this, bluePrint.x_),
     gmean_("gmean", this, bluePrint.gmean_),
-    g2sigma_("g2sigma", this, bluePrint.g2sigma_),
-    g4sigma_("g4sigma", this, bluePrint.g4sigma_),
+    gsigma_("gsigma", this, bluePrint.gsigma_),
+    slope_("slope", this, bluePrint.slope_),
+    offset_("offset", this, bluePrint.offset_),
     C_("C", this, bluePrint.C_),
+    //kappa_("kappa", this, bluePrint.kappa_),
+    //theta_("theta", this, bluePrint.theta_),
+    //mu_("mu", this, bluePrint.mu_),
     mp_("mp", this, bluePrint.mp_),
     width_("width", this, bluePrint.width_),
     alpha_("alpha", this, bluePrint.alpha_),
@@ -66,6 +76,7 @@ Double_t TauDecayKinePdf::evaluate() const
   Double_t retVal = 0.;
 
   if      ( x_ <  x0_         ) retVal = evaluateGaussian(x_);
+  //if      ( x_ <  x0_         ) retVal = evaluateExpGamma(x_);
   else if ( x_ < (x0_ + dx1_) ) retVal = evaluateLandau(x_);
   else                          retVal = evaluateExponential(x_);
   
@@ -77,25 +88,31 @@ Double_t TauDecayKinePdf::evaluate() const
 Double_t TauDecayKinePdf::evaluateGaussian(Double_t x) const
 {
   double gaussian = 0.;
+  if ( gsigma_ > 0. ) {
+    Double_t pull = (x - gmean_)/gsigma_;
+    gaussian += C_*TMath::Exp(-0.5*pull*pull);
+    //gaussian = TMath::Exp(-0.5*pull*pull);
+  }
+  
+  gaussian += (1. - C_)*(slope_*x_ + offset_);
 
-  if ( g2sigma_ > 0. ) {
-    Double_t pull2 = (x - gmean_)/g2sigma_;
-    Double_t g2 = (1. - C_)*TMath::Exp(-0.5*pull2*pull2);
-    std::cout << "--> adding g2 = " << g2 << std::endl;
-    gaussian += g2;
-  }
-  
-  if ( g4sigma_ > 0. ) {
-    Double_t pull4 = (x - gmean_)/g4sigma_;
-    Double_t g4 = C_*TMath::Exp(-0.5*pull4*pull4*pull4*pull4);
-    std::cout << "--> adding g4 = " << g4 << std::endl;
-    gaussian += g4;
-  }
-  
-  std::cout << "--> returning g2 + g4 = " << gaussian << std::endl;
+  std::cout << "--> returning gaussian = " << gaussian << std::endl;
   return gaussian;
 }
+/*
+Double_t TauDecayKinePdf::evaluateExpGamma(Double_t x) const
+{
+  double expGamma = 0.;
 
+  if ( theta_ > 0. ) {
+    double pull = (x - mu_)/theta_;
+    expGamma = (1./(theta_*TMath::Gamma(kappa_)))*TMath::Exp(-TMath::Exp(pull) + kappa_*pull);
+  }
+
+  //std::cout << "--> returning expGamma = " << expGamma << std::endl;
+  return expGamma;
+}
+ */
 Double_t TauDecayKinePdf::evaluateLandau(Double_t x) const
 {
 //--- normalize Landau such that 
@@ -122,19 +139,20 @@ Double_t TauDecayKinePdf::evaluateExponential(Double_t x) const
 
 void TauDecayKinePdf::updateNormFactor0to1() const
 {
-  std::cout << "<updateNormFactor0to1>:" << std::endl;
+  //std::cout << "<updateNormFactor0to1>:" << std::endl;
   double landau_x0 = ( width_ > 0. ) ? (::ROOT::Math::landau_pdf((x0_ - mp_)/width_)) : -1.;
   norm0to1_ = ( landau_x0 > 0. ) ? (evaluateGaussian(x0_)/landau_x0) : 0.;
-  std::cout << "--> setting norm0to1 = " << norm0to1_ << std::endl;
+  //norm0to1_ = ( landau_x0 > 0. ) ? (evaluateExpGamma(x0_)/landau_x0) : 0.;
+  //std::cout << "--> setting norm0to1 = " << norm0to1_ << std::endl;
 }
 
 void TauDecayKinePdf::updateNormFactor1to2() const
 {
-  std::cout << "<updateNormFactor1to2>:" << std::endl;
+  //std::cout << "<updateNormFactor1to2>:" << std::endl;
   Double_t x1 = x0_ + dx1_;
   Double_t landau_x1 = ( width_ > 0. ) ? (::ROOT::Math::landau_pdf((x1 - mp_)/width_)) : -1.;
   norm1to2_ = ( landau_x1 > 0. ) ? (norm0to1_*landau_x1) : 0.;
-  std::cout << "--> setting norm1to2 = " << norm1to2_ << std::endl;
+  //std::cout << "--> setting norm1to2 = " << norm1to2_ << std::endl;
 }
 
 //
@@ -147,9 +165,11 @@ Int_t TauDecayKinePdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& anal
   return 0 ;
 }
 
-Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char*) const 
+Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char* rangeName) const 
 {
-  assert(code == 1) ;
+  //std::cout << "<TauDecayKinePdf::analyticalIntegral>:" << std::endl;
+  
+  assert(code == 1);
 
   Double_t retVal = 0.;
 
@@ -157,27 +177,37 @@ Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char*) const
     updateNormFactor0to1();
     updateNormFactor1to2();
     
+    double gaussian_integral = 0.;
+
     if ( g2sigma_ > 0. ) {
       Double_t sqrt2_times_sigma = TMath::Sqrt(2.)*g2sigma_;
-      retVal += TMath::Sqrt(0.5*TMath::Pi())*g2sigma_
+      gaussian_integral += (1. - C_)*TMath::Sqrt(0.5*TMath::Pi())*g2sigma_
                *(TMath::Erf(gmean_/sqrt2_times_sigma) + TMath::Erf((x0_ - gmean_)/sqrt2_times_sigma));
     }
 
     if ( g4sigma_ > 0. ) {
       Double_t pull4 = (x0_ - gmean_)/g4sigma_;
-      retVal += TMath::Power(2., 1.75)*g4sigma_*(TMath::Gamma(0.25, 0.5*pull4*pull4) - TMath::Gamma(0.25, 0.));
+      gaussian_integral += C_*TMath::Power(2., 1.75)*g4sigma_*(TMath::Gamma(0.25, 0.5*pull4*pull4) - TMath::Gamma(0.25, 0.));
     }
 
+    //std::cout << "--> gaussian_integral = " << gaussian_integral << std::endl;
+
     double x1 = x0_ + dx1_;
+    if ( x1 > x_.max(rangeName) ) x1 = x_.max(rangeName);
 
-    retVal += norm0to1_*(::ROOT::Math::landau_cdf(x1, width_, mp_) - ::ROOT::Math::landau_cdf(x0_, width_, mp_));
-
-    retVal += norm1to2_*(1./alpha_)*TMath::Exp(-alpha_*x1);
+    double landau_integral = norm0to1_*width_
+                            *(::ROOT::Math::landau_cdf((x1 - mp_)/width_) - ::ROOT::Math::landau_cdf((x0_ - mp_)/width_));
+    //std::cout << "--> landau_integral = " << landau_integral << std::endl;
+    
+    double exponential_integral = norm1to2_*(1./alpha_)*TMath::Exp(-alpha_*x1) - TMath::Exp(-alpha_*x_.max(rangeName));
+    //std::cout << "--> exponential_integral = " << exponential_integral << std::endl;
+    
+    retVal = gaussian_integral + landau_integral + exponential_integral;
   }
 
   return retVal;
 }
- */
+ */ 
 //
 //-------------------------------------------------------------------------------
 //
@@ -187,9 +217,13 @@ void TauDecayKinePdf::print(std::ostream& stream) const
   stream << "<TauDecayKinePdf::print>:" << std::endl;
   stream << " x: name = " << x_.absArg()->GetName() << ", value = " << x_ << std::endl;
   stream << " gmean: name = " << gmean_.absArg()->GetName() << ", value = " << gmean_ << std::endl;
-  stream << " g2sigma: name = " << g2sigma_.absArg()->GetName() << ", value = " << g2sigma_ << std::endl;
-  stream << " g4sigma: name = " << g4sigma_.absArg()->GetName() << ", value = " << g4sigma_ << std::endl;
+  stream << " gsigma: name = " << gsigma_.absArg()->GetName() << ", value = " << gsigma_ << std::endl;
+  stream << " slope: name = " << slope_.absArg()->GetName() << ", value = " << slope_ << std::endl;
+  stream << " offset: name = " << offset_.absArg()->GetName() << ", value = " << offset_ << std::endl;
   stream << " C: name = " << C_.absArg()->GetName() << ", value = " << C_ << std::endl;
+  //stream << " kappa: name = " << kappa_.absArg()->GetName() << ", value = " << kappa_ << std::endl;
+  //stream << " theta: name = " << theta_.absArg()->GetName() << ", value = " << theta_ << std::endl;
+  //stream << " mu: name = " << mu_.absArg()->GetName() << ", value = " << mu_ << std::endl;
   stream << " mp: name = " << mp_.absArg()->GetName() << ", value = " << mp_ << std::endl;
   stream << " width: name = " << width_.absArg()->GetName() << ", value = " << width_ << std::endl;
   stream << " alpha: name = " << alpha_.absArg()->GetName() << ", value = " << alpha_ << std::endl;

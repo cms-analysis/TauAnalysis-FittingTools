@@ -15,9 +15,9 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.2 $
+ * \version $Revision: 1.1 $
  *
- * $Id: TauDecayKinePdf.h,v 1.2 2010/11/24 17:08:05 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.1 2011/04/29 18:58:31 veelken Exp $
  *
  */
 
@@ -34,7 +34,7 @@ class TauDecayKinePdf : public RooAbsPdf
   // constructor(s)
   TauDecayKinePdf();   
   TauDecayKinePdf(const char*, const char*, 
-		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
+		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
 		  RooAbsReal&, RooAbsReal&);
   TauDecayKinePdf(const TauDecayKinePdf&, const char* = "");
   
@@ -45,13 +45,14 @@ class TauDecayKinePdf : public RooAbsPdf
 /*
   Int_t getAnalyticalIntegral(RooArgSet&, RooArgSet&, const char* = 0) const;
   Double_t analyticalIntegral(Int_t, const char* = 0) const;
- */
+ */ 
   void print(std::ostream&) const;
 
  protected:
   Double_t evaluate() const;
 
   Double_t evaluateGaussian(Double_t) const;
+  //Double_t evaluateExpGamma(Double_t) const;
   Double_t evaluateLandau(Double_t) const;
   Double_t evaluateExponential(Double_t) const;
 
@@ -61,9 +62,13 @@ class TauDecayKinePdf : public RooAbsPdf
   RooRealProxy x_;
 
   RooRealProxy gmean_;
-  RooRealProxy g2sigma_;
-  RooRealProxy g4sigma_;
+  RooRealProxy gsigma_;
+  RooRealProxy slope_;
+  RooRealProxy offset_;
   RooRealProxy C_;
+  //RooRealProxy kappa_;
+  //RooRealProxy theta_;
+  //RooRealProxy mu_;
   RooRealProxy mp_;
   RooRealProxy width_;
   RooRealProxy alpha_;
