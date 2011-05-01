@@ -15,9 +15,9 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.3 $
+ * \version $Revision: 1.4 $
  *
- * $Id: TauDecayKinePdf.h,v 1.3 2011/04/30 17:57:14 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.4 2011/04/30 18:55:54 veelken Exp $
  *
  */
 
@@ -34,7 +34,8 @@ class TauDecayKinePdf : public RooAbsPdf
   // constructor(s)
   TauDecayKinePdf();   
   TauDecayKinePdf(const char*, const char*, 
-		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
+		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
+		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
 		  RooAbsReal&, RooAbsReal&);
   TauDecayKinePdf(const TauDecayKinePdf&, const char* = "");
   
@@ -52,7 +53,7 @@ class TauDecayKinePdf : public RooAbsPdf
   Double_t evaluate() const;
 
   Double_t evaluateGaussian(Double_t) const;
-  Double_t evaluateLandau(Double_t) const;
+  Double_t evaluateLandau(Double_t, bool = true) const;
   Double_t evaluateExponential(Double_t) const;
 
   void updateNormFactor0to1() const;
@@ -65,9 +66,10 @@ class TauDecayKinePdf : public RooAbsPdf
   RooRealProxy slope_;
   RooRealProxy offset_;
   RooRealProxy C_;
-  RooRealProxy mp_;
-  RooRealProxy width_;
-  RooRealProxy alpha_;
+  RooRealProxy mp1_;
+  RooRealProxy width1_;
+  RooRealProxy mp2_;
+  RooRealProxy width2_;
   RooRealProxy x0_;
   RooRealProxy dx1_;
 

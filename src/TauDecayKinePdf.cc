@@ -20,7 +20,7 @@ TauDecayKinePdf::TauDecayKinePdf(
   const char* name, const char* title, 
   RooAbsReal& x, 
   RooAbsReal& gmean, RooAbsReal& gsigma, RooAbsReal& slope, RooAbsReal& offset,  RooAbsReal& C,
-  RooAbsReal& mp, RooAbsReal& width, RooAbsReal& alpha,
+  RooAbsReal& mp1, RooAbsReal& width1, RooAbsReal& mp2, RooAbsReal& width2, 
   RooAbsReal& x0, RooAbsReal& dx1)
   : RooAbsPdf(name, title), 
     x_("x", "x", this, x),
@@ -29,9 +29,10 @@ TauDecayKinePdf::TauDecayKinePdf(
     slope_("slope", "slope", this, slope),
     offset_("offset", "offset", this, offset),
     C_("C", "C", this, C),
-    mp_("mp", "mp", this, mp),
-    width_("width", "width", this, width),
-    alpha_("alpha", "alpha", this, alpha),
+    mp1_("mp1", "mp1", this, mp1),
+    width1_("width1", "width1", this, width1),
+    mp2_("mp2", "mp2", this, mp2),
+    width2_("width2", "width2", this, width2),
     x0_("x0", "x0", this, x0),
     dx1_("dx1", "dx1", this, dx1),
     verbosity_(0)
@@ -50,9 +51,10 @@ TauDecayKinePdf::TauDecayKinePdf(const TauDecayKinePdf& bluePrint, const char* n
     slope_("slope", this, bluePrint.slope_),
     offset_("offset", this, bluePrint.offset_),
     C_("C", this, bluePrint.C_),
-    mp_("mp", this, bluePrint.mp_),
-    width_("width", this, bluePrint.width_),
-    alpha_("alpha", this, bluePrint.alpha_),
+    mp1_("mp1", this, bluePrint.mp1_),
+    width1_("width1", this, bluePrint.width1_),
+    mp2_("mp2", this, bluePrint.mp2_),
+    width2_("width2", this, bluePrint.width2_),
     x0_("x0", this, bluePrint.x0_),
     dx1_("dx1", this, bluePrint.dx1_),
     verbosity_(0)
@@ -100,13 +102,13 @@ Double_t TauDecayKinePdf::evaluateGaussian(Double_t x) const
   return gaussian;
 }
 
-Double_t TauDecayKinePdf::evaluateLandau(Double_t x) const
+Double_t TauDecayKinePdf::evaluateLandau(Double_t x, bool updateNormFactor) const
 {
 //--- normalize Landau such that 
 //      exp(-((x - gmean)/g2sigma)^2) + C*exp(-((x - mean)/g4sigma)^4) = Landau(x, mp, width) 
 //    at x = x0
-  updateNormFactor0to1();
-  double landau = ( width_ > 0. ) ? (norm0to1_*::ROOT::Math::landau_pdf((x - mp_)/width_)) : 0.;
+  if ( updateNormFactor ) updateNormFactor0to1();
+  double landau = ( width1_ > 0. ) ? (norm0to1_*::ROOT::Math::landau_pdf((x - mp1_)/width1_)) : 0.;
   if ( this->verbosity_ ) std::cout << "--> returning landau = " << landau << std::endl;
   return landau;
 }
@@ -114,12 +116,11 @@ Double_t TauDecayKinePdf::evaluateLandau(Double_t x) const
 Double_t TauDecayKinePdf::evaluateExponential(Double_t x) const
 {
 //--- normalize exponential such that
-//       Landau(x, mp, width) = exp(-alpha*x) 
+//       Landau(x, mp1, width1) = Exponential(x, mp2, width2)
 //    at x = x1       
   updateNormFactor0to1();
   updateNormFactor1to2();
-  Double_t x1 = x0_ + dx1_;
-  double exponential = norm1to2_*TMath::Exp(-alpha_*(x - x1));
+  double exponential = ( width2_ > 0. ) ? (norm1to2_*::ROOT::Math::landau_pdf((x - mp2_)/width2_)) : 0.;
   if ( this->verbosity_ ) std::cout << "--> returning exponential = " << exponential << std::endl;
   return exponential;  
 }
@@ -127,8 +128,8 @@ Double_t TauDecayKinePdf::evaluateExponential(Double_t x) const
 void TauDecayKinePdf::updateNormFactor0to1() const
 {
   if ( this->verbosity_ ) std::cout << "<updateNormFactor0to1>:" << std::endl;
-  double landau_x0 = ( width_ > 0. ) ? (::ROOT::Math::landau_pdf((x0_ - mp_)/width_)) : -1.;
-  norm0to1_ = ( landau_x0 > 0. ) ? (evaluateGaussian(x0_)/landau_x0) : 0.;
+  double landau1_x0 = ( width1_ > 0. ) ? (::ROOT::Math::landau_pdf((x0_ - mp1_)/width1_)) : -1.;
+  norm0to1_ = ( landau1_x0 > 0. ) ? (evaluateGaussian(x0_)/landau1_x0) : 0.;
   if ( this->verbosity_ ) std::cout << "--> setting norm0to1 = " << norm0to1_ << std::endl;
 }
 
@@ -136,8 +137,8 @@ void TauDecayKinePdf::updateNormFactor1to2() const
 {
   if ( this->verbosity_ ) std::cout << "<updateNormFactor1to2>:" << std::endl;
   Double_t x1 = x0_ + dx1_;
-  Double_t landau_x1 = ( width_ > 0. ) ? (::ROOT::Math::landau_pdf((x1 - mp_)/width_)) : -1.;
-  norm1to2_ = ( landau_x1 > 0. ) ? (norm0to1_*landau_x1) : 0.;
+  Double_t landau2_x1 = ( width2_ > 0. ) ? (::ROOT::Math::landau_pdf((x1 - mp2_)/width2_)) : -1.;
+  norm1to2_ = ( landau2_x1 > 0. ) ? (evaluateLandau(x1, false)/landau2_x1) : 0.;
   if ( this->verbosity_ ) std::cout << "--> setting norm1to2 = " << norm1to2_ << std::endl;
 }
 
@@ -192,8 +193,8 @@ Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char* rangeName) 
     
     if ( xMax_landau > xMin_landau ) {
       landau_integral += 
-	norm0to1_*width_
-       *(::ROOT::Math::landau_cdf((xMax_landau - mp_)/width_) - ::ROOT::Math::landau_cdf((xMin_landau - mp_)/width_));
+	norm0to1_*width1_
+       *(::ROOT::Math::landau_cdf((xMax_landau - mp1_)/width1_) - ::ROOT::Math::landau_cdf((xMin_landau - mp1_)/width1_));
     }
      
     if ( this->verbosity_ ) std::cout << "--> landau_integral = " << landau_integral << std::endl;
@@ -204,7 +205,9 @@ Double_t TauDecayKinePdf::analyticalIntegral(Int_t code, const char* rangeName) 
     double xMax_exponential = xMax;
 
     if ( xMax_exponential > xMin_exponential ) {
-      exponential_integral += norm1to2_*(1./alpha_)*(TMath::Exp(-alpha_*xMin_exponential) - TMath::Exp(-alpha_*xMax_exponential));
+      exponential_integral += 
+        norm1to2_*width2_
+       *(::ROOT::Math::landau_cdf((xMax_exponential - mp2_)/width2_) - ::ROOT::Math::landau_cdf((xMin_exponential - mp2_)/width2_));
     }
 
     if ( this->verbosity_ ) std::cout << "--> exponential_integral = " << exponential_integral << std::endl;
@@ -228,9 +231,10 @@ void TauDecayKinePdf::print(std::ostream& stream) const
   stream << " slope: name = " << slope_.absArg()->GetName() << ", value = " << slope_ << std::endl;
   stream << " offset: name = " << offset_.absArg()->GetName() << ", value = " << offset_ << std::endl;
   stream << " C: name = " << C_.absArg()->GetName() << ", value = " << C_ << std::endl;
-  stream << " mp: name = " << mp_.absArg()->GetName() << ", value = " << mp_ << std::endl;
-  stream << " width: name = " << width_.absArg()->GetName() << ", value = " << width_ << std::endl;
-  stream << " alpha: name = " << alpha_.absArg()->GetName() << ", value = " << alpha_ << std::endl;
+  stream << " mp1: name = " << mp1_.absArg()->GetName() << ", value = " << mp1_ << std::endl;
+  stream << " width1: name = " << width1_.absArg()->GetName() << ", value = " << width1_ << std::endl;
+  stream << " mp2: name = " << mp2_.absArg()->GetName() << ", value = " << mp2_ << std::endl;
+  stream << " width2: name = " << width2_.absArg()->GetName() << ", value = " << width2_ << std::endl;
   stream << " x0: name = " << x0_.absArg()->GetName() << ", value = " << x0_ << std::endl;
   stream << " dx1: name = " << dx1_.absArg()->GetName() << ", value = " << dx1_ << std::endl;
 }
