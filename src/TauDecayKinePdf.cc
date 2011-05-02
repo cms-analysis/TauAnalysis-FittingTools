@@ -11,7 +11,8 @@
 #include <iomanip>
 
 TauDecayKinePdf::TauDecayKinePdf()
-  : verbosity_(0)
+  : doAnalyticIntegration_(true),
+    verbosity_(0)
 {
   if ( this->verbosity_ ) std::cout << "<TauDecayKinePdf::TauDecayKinePdf(1)>:" << std::endl;
 }
@@ -35,6 +36,7 @@ TauDecayKinePdf::TauDecayKinePdf(
     width2_("width2", "width2", this, width2),
     x0_("x0", "x0", this, x0),
     dx1_("dx1", "dx1", this, dx1),
+    doAnalyticIntegration_(true),
     verbosity_(0)
 {
   if ( this->verbosity_ ) {
@@ -57,6 +59,7 @@ TauDecayKinePdf::TauDecayKinePdf(const TauDecayKinePdf& bluePrint, const char* n
     width2_("width2", this, bluePrint.width2_),
     x0_("x0", this, bluePrint.x0_),
     dx1_("dx1", this, bluePrint.dx1_),
+    doAnalyticIntegration_(bluePrint.doAnalyticIntegration_),
     verbosity_(0)
 {
   if ( this->verbosity_ ) {
@@ -148,7 +151,7 @@ void TauDecayKinePdf::updateNormFactor1to2() const
 
 Int_t TauDecayKinePdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char*) const 
 {
-  if ( matchArgs(allVars, analVars, x_) ) return 1 ;
+  if ( doAnalyticIntegration_ && matchArgs(allVars, analVars, x_) ) return 1;
   return 0 ;
 }
 

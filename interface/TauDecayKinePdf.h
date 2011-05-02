@@ -15,9 +15,9 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.4 $
+ * \version $Revision: 1.5 $
  *
- * $Id: TauDecayKinePdf.h,v 1.4 2011/04/30 18:55:54 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.5 2011/05/01 16:58:45 veelken Exp $
  *
  */
 
@@ -46,6 +46,9 @@ class TauDecayKinePdf : public RooAbsPdf
 
   Int_t getAnalyticalIntegral(RooArgSet&, RooArgSet&, const char* = 0) const;
   Double_t analyticalIntegral(Int_t, const char* = 0) const;
+
+  void disableAnalyticIntegration() { doAnalyticIntegration_ = false; }
+  void enableAnalyticIntegration() { doAnalyticIntegration_ = true; }
  
   void print(std::ostream&) const;
 
@@ -75,6 +78,8 @@ class TauDecayKinePdf : public RooAbsPdf
 
   mutable Double_t norm0to1_;
   mutable Double_t norm1to2_;
+
+  bool doAnalyticIntegration_;
 
   int verbosity_;
 };
