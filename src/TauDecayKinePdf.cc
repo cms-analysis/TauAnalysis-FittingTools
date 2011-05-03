@@ -11,7 +11,8 @@
 #include <iomanip>
 
 TauDecayKinePdf::TauDecayKinePdf()
-  : doAnalyticIntegration_(true),
+  : RooAbsPdf(),
+    doAnalyticIntegration_(true),
     verbosity_(0)
 {
   if ( this->verbosity_ ) std::cout << "<TauDecayKinePdf::TauDecayKinePdf(1)>:" << std::endl;
@@ -241,3 +242,7 @@ void TauDecayKinePdf::print(std::ostream& stream) const
   stream << " x0: name = " << x0_.absArg()->GetName() << ", value = " << x0_ << std::endl;
   stream << " dx1: name = " << dx1_.absArg()->GetName() << ", value = " << dx1_ << std::endl;
 }
+
+// generate CInt dictionaries
+ClassImp(TauDecayKinePdf)
+

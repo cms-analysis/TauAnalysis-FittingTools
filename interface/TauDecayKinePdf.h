@@ -15,13 +15,11 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.5 $
+ * \version $Revision: 1.6 $
  *
- * $Id: TauDecayKinePdf.h,v 1.5 2011/05/01 16:58:45 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.6 2011/05/02 08:58:02 veelken Exp $
  *
  */
-
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "RooAbsPdf.h"
 #include "RooRealProxy.h"
@@ -82,6 +80,10 @@ class TauDecayKinePdf : public RooAbsPdf
   bool doAnalyticIntegration_;
 
   int verbosity_;
+
+ private:
+  // generate CInt dictionaries
+  ClassDef(TauDecayKinePdf,1);
 };
 
 #endif  
