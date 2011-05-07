@@ -7,7 +7,7 @@
 
 class RooSkewNormal : public RooAbsPdf {
   public:
-    RooSkewNormal() {}
+    RooSkewNormal():RooAbsPdf(){}
     RooSkewNormal(const char *name, const char *title,
         RooAbsReal& _x, RooAbsReal& _location, RooAbsReal& _scale,
         RooAbsReal& _skew);
@@ -32,6 +32,8 @@ class RooSkewNormal : public RooAbsPdf {
     RooRealProxy location;
     RooRealProxy scale;
     RooRealProxy skew;
+    // generate CInt dictionaries
+    ClassDef(RooSkewNormal,1);
 };
 
 #endif /* end of include guard: TauAnalysis_FittingTools_RooSkewNormal_h */
