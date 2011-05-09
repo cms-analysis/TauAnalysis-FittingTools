@@ -15,9 +15,9 @@
  * 
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.6 $
+ * \version $Revision: 1.7 $
  *
- * $Id: TauDecayKinePdf.h,v 1.6 2011/05/02 08:58:02 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.7 2011/05/03 15:50:19 veelken Exp $
  *
  */
 
@@ -32,6 +32,7 @@ class TauDecayKinePdf : public RooAbsPdf
   // constructor(s)
   TauDecayKinePdf();   
   TauDecayKinePdf(const char*, const char*, 
+		  RooAbsReal&, 
 		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
 		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
 		  RooAbsReal&, RooAbsReal&);
@@ -44,18 +45,18 @@ class TauDecayKinePdf : public RooAbsPdf
 
   Int_t getAnalyticalIntegral(RooArgSet&, RooArgSet&, const char* = 0) const;
   Double_t analyticalIntegral(Int_t, const char* = 0) const;
-
-  void disableAnalyticIntegration() { doAnalyticIntegration_ = false; }
-  void enableAnalyticIntegration() { doAnalyticIntegration_ = true; }
  
+  void disableAnalyticIntegration() { doAnalyticIntegration_ = false; }
+  void enableAnalyticIntegration()  { doAnalyticIntegration_ = true;  }
+  
   void print(std::ostream&) const;
 
  protected:
   Double_t evaluate() const;
 
   Double_t evaluateGaussian(Double_t) const;
-  Double_t evaluateLandau(Double_t, bool = true) const;
-  Double_t evaluateExponential(Double_t) const;
+  Double_t evaluateLandau1(Double_t, bool = true) const;
+  Double_t evaluateLandau2(Double_t) const;
 
   void updateNormFactor0to1() const;
   void updateNormFactor1to2() const;
@@ -64,6 +65,7 @@ class TauDecayKinePdf : public RooAbsPdf
 
   RooRealProxy gmean_;
   RooRealProxy gsigma_;
+  RooRealProxy alpha_;
   RooRealProxy slope_;
   RooRealProxy offset_;
   RooRealProxy C_;
@@ -77,13 +79,18 @@ class TauDecayKinePdf : public RooAbsPdf
   mutable Double_t norm0to1_;
   mutable Double_t norm1to2_;
 
+  mutable Double_t mp2Value_;
+  mutable Double_t width2Value_;
+  mutable Double_t x0Value_;
+  mutable Double_t dx1Value_;
+
   bool doAnalyticIntegration_;
 
   int verbosity_;
 
  private:
   // generate CInt dictionaries
-  ClassDef(TauDecayKinePdf,1);
+  ClassDef(TauDecayKinePdf, 1);
 };
 
 #endif  
