@@ -4,8 +4,9 @@
 #include "RooAbsPdf.h"
 #include "RooRealVar.h"
 #include "RooRealProxy.h"
+#include "TauAnalysis/FittingTools/interface/RooAbsEstimatablePdf.h"
 
-class RooSkewNormal : public RooAbsPdf {
+class RooSkewNormal : public RooAbsPdf, public RooAbsEstimatablePdf {
   public:
     RooSkewNormal():RooAbsPdf(){}
     RooSkewNormal(const char *name, const char *title,
@@ -26,6 +27,9 @@ class RooSkewNormal : public RooAbsPdf {
 
     /// Compute analytical integrals
     Double_t analyticalIntegral(Int_t code, const char *rangeName) const;
+
+    /// Estimate parameters
+    RooArgSet estimateParameters(RooAbsData& data, double errorFactor);
 
   private:
     RooRealProxy x;

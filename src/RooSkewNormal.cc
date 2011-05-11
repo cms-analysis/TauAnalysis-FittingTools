@@ -24,11 +24,13 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "TauAnalysis/FittingTools/interface/RooSkewNormal.h"
+#include <memory>
 #include "RooMath.h"
 #include "RooAbsReal.h"
 #include "RooRealVar.h"
 #include "TMath.h"
 #include "owens.H"
+#include "TH1F.h"
 
 RooSkewNormal::RooSkewNormal(const char *name, const char *title,
 			 RooAbsReal& _x, RooAbsReal& _location,
@@ -103,5 +105,57 @@ Double_t RooSkewNormal::analyticalIntegral(Int_t code, const char* rangeName) co
 
 }
 
+RooArgSet RooSkewNormal::estimateParameters(RooAbsData& data, double errorFactor) {
 
+  std::auto_ptr<TH1> histo(data.createHistogram(x.arg().GetName()));
+  TH1* histogram = histo.get();
+  assert(histogram);
 
+  std::cout << "<" << this->GetName() << "::estimateParameters("
+    << data.GetName() << "[" << x.arg().GetName() << "])>" << std::endl;
+
+  double sampleSkew = histogram->GetSkewness();
+  std::cout << " - initial sample skew is " << sampleSkew << std::endl;
+
+  if (TMath::Abs(sampleSkew) > 0.80) {
+    sampleSkew = 0.80*sampleSkew/TMath::Abs(sampleSkew);
+  }
+  double sampleSigma = histogram->GetRMS();
+  double sampleMean = histogram->GetMean();
+
+  std::cout << " - corrected sample skew is " << sampleSkew << std::endl;
+  std::cout << " - sample mean is " << sampleMean << std::endl;
+  std::cout << " - sample sigam is " << sampleSigma << std::endl;
+
+  // c.f. http://en.wikipedia.org/wiki/Skew_normal_distribution#Estimation
+  double thirdMomentToTwoThirds = TMath::Power(TMath::Abs(sampleSkew), 2.0/3.0);
+
+  double absDelta = TMath::Sqrt(
+      TMath::Pi()*0.5*(thirdMomentToTwoThirds)/(
+        thirdMomentToTwoThirds + TMath::Power((4 - TMath::Pi())/2.0, 2.0/3.0)));
+
+  double delta = absDelta*sampleSkew/TMath::Abs(sampleSkew);
+
+  double estSkew = delta/TMath::Sqrt(1- delta*delta);
+
+  double estScale = sampleSigma/TMath::Sqrt(1 - 2*delta*delta/TMath::Pi());
+
+  double estLocation = sampleMean - estScale*delta*TMath::Sqrt(2/TMath::Pi());
+
+  location = estLocation;
+  scale = estScale;
+  skew = estSkew;
+
+  std::cout << "location: " << location << std::endl;
+  std::cout << "scale: " << scale << std::endl;
+  std::cout << "skew: " << skew << std::endl;
+
+  RooArgSet output;
+  output.add(location.arg());
+  output.add(scale.arg());
+  output.add(skew.arg());
+
+  return output;
+}
+
+ClassImp(RooSkewNormal)

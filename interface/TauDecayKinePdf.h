@@ -12,32 +12,34 @@
  *  (1) exp(-((x-gmean)/g2sigma)^2) + C*exp(-((x-mean)/g4sigma)^4) if x <= x0 with gmean > 0, gNsigma > 0, C in [0..1]
  *  (2) Landau(x, mp, width)                                       if d0 < x <= x1 with mp real, width > 0
  *  (3) exp(-alpha*x)                                              if      x >  x1 with alpha > 0
- * 
+ *
  * \author Christian Veelken, UC Davis
  *
- * \version $Revision: 1.7 $
+ * \version $Revision: 1.8 $
  *
- * $Id: TauDecayKinePdf.h,v 1.7 2011/05/03 15:50:19 veelken Exp $
+ * $Id: TauDecayKinePdf.h,v 1.8 2011/05/09 12:13:55 veelken Exp $
  *
  */
 
 #include "RooAbsPdf.h"
 #include "RooRealProxy.h"
+#include "RooAbsData.h"
+#include "TauAnalysis/FittingTools/interface/RooAbsEstimatablePdf.h"
 
 #include <ostream>
 
-class TauDecayKinePdf : public RooAbsPdf 
+class TauDecayKinePdf : public RooAbsPdf, public RooAbsEstimatablePdf
 {
  public:
   // constructor(s)
-  TauDecayKinePdf();   
-  TauDecayKinePdf(const char*, const char*, 
-		  RooAbsReal&, 
-		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
-		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, 
+  TauDecayKinePdf();
+  TauDecayKinePdf(const char*, const char*,
+		  RooAbsReal&,
+		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&,
+		  RooAbsReal&, RooAbsReal&, RooAbsReal&, RooAbsReal&,
 		  RooAbsReal&, RooAbsReal&);
   TauDecayKinePdf(const TauDecayKinePdf&, const char* = "");
-  
+
   // destructor
   virtual ~TauDecayKinePdf();
 
@@ -45,11 +47,13 @@ class TauDecayKinePdf : public RooAbsPdf
 
   Int_t getAnalyticalIntegral(RooArgSet&, RooArgSet&, const char* = 0) const;
   Double_t analyticalIntegral(Int_t, const char* = 0) const;
- 
+
   void disableAnalyticIntegration() { doAnalyticIntegration_ = false; }
   void enableAnalyticIntegration()  { doAnalyticIntegration_ = true;  }
-  
+
   void print(std::ostream&) const;
+
+  RooArgSet estimateParameters(RooAbsData& data, double errorFactor);
 
  protected:
   Double_t evaluate() const;
@@ -90,8 +94,8 @@ class TauDecayKinePdf : public RooAbsPdf
 
  private:
   // generate CInt dictionaries
-  ClassDef(TauDecayKinePdf, 1);
+  ClassDef(TauDecayKinePdf, 2);
 };
 
-#endif  
+#endif
 
