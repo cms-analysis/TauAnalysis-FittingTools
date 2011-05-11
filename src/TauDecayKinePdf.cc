@@ -512,7 +512,7 @@ RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFact
   *_alpha = estSkew;
 
   _mp1->setConstant(true);
-  _mp1->setMax(_x0->getVal());
+  _mp1->setMax( 0.5*(_x0->getVal() + histogramMax_x) );
   _width1->setConstant(true);
   _mp2->setConstant(true);
   _width2->setConstant(true);
@@ -523,7 +523,7 @@ RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFact
   _slope->setConstant(true);
   _offset->setConstant(true);
 
-  _alpha->setConstant(true);
+  _alpha->setConstant(false);
 
   std::cout << " making copy of self " << std::endl;
   TauDecayKinePdf copy(*this, "tmp");
