@@ -369,6 +369,58 @@ double compFallingEdgePos(TH1* histogram, double& errEdgePosRight, double& errEd
 
   return fallindEdgePos;
 }
+
+double compLandauChi2(TH1* histogram, int iBin0, int iBin1, double mp, double width)
+{
+  //std::cout << "<compFCN>:" << std::endl;
+
+  double retVal = 0.;
+
+  double histogram_sum = 0.;
+  double landau_integral = 0.;
+  for ( int iBin = iBin0; iBin <= iBin1; ++iBin ) {
+    histogram_sum += histogram->GetBinContent(iBin);
+    landau_integral += ::ROOT::Math::landau_pdf((histogram->GetBinCenter(iBin) - mp)/width);
+  }
+
+  //std::cout << " histogram_sum = " << histogram_sum << std::endl;
+  //std::cout << " landau_integral = " << landau_integral << std::endl;
+
+  double landau_norm = (histogram_sum/landau_integral);
+  //std::cout << " landau_norm = " << landau_norm << std::endl;
+
+  // Count only the bins with nonZero entries
+  int DOF = 0;
+  for ( int iBin = iBin0; iBin <= iBin1; ++iBin ) {
+    double binCenter = histogram->GetBinCenter(iBin);
+
+    double binContent = histogram->GetBinContent(iBin);
+    //std::cout << "binContent = " << binContent << std::endl;
+    double binError = histogram->GetBinError(iBin);
+
+    double landau = landau_norm*::ROOT::Math::landau_pdf((binCenter - mp)/width);
+    //std::cout << "landau = " << landau << std::endl;
+
+    double pull = binContent - landau;
+    if ( binError > 0. ) {
+      pull /= binError;
+      DOF++;
+    }
+    //std::cout << "binCenter = " << binCenter << ": pull = " << pull << std::endl;
+
+    retVal += pull*pull;
+  }
+
+  //std::cout << "--> returning retVal = " << retVal << std::endl;
+  if (DOF) {
+    return retVal/DOF;
+  } else {
+    std::cout << "compLandauChi2:: NO BINS HAVE NONZERO entries, return 1e6!"
+      << std::endl;
+    return 1e6;
+  }
+}
+
 }
 
 RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFactor) {
@@ -410,110 +462,120 @@ RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFact
   std::cout << " histogramRMSltMax = " << histogramRMSltMax << std::endl;
   double histogramRMSgtMax = compHistogramRMSgtMax(histogram);
   std::cout << " histogramRMSgtMax = " << histogramRMSgtMax << std::endl;
-  double x0Min = 0.9*fallingEdge_position - errEdgePosLeft;
-  double x0Max = 1.1*fallingEdge_position + errEdgePosRight;
+  //double x0Min = 0.9*fallingEdge_position - errEdgePosLeft;
+  //double x0Max = 1.1*fallingEdge_position + errEdgePosRight;
 
   // Convert everything to RooRealVars
   RooRealVar* _x = convertProxy(x_);
+
   RooRealVar* _gmean = convertProxy(gmean_);
+  bool _gmeanConstant = _gmean->isConstant();
+
   RooRealVar* _gsigma = convertProxy(gsigma_);
+  bool _gsigmaConstant = _gsigma->isConstant();
+
   RooRealVar* _alpha = convertProxy(alpha_);
+  bool _alphaConstant = _alpha->isConstant();
+
   RooRealVar* _slope = convertProxy(slope_);
+  bool _slopeConstant = _slope->isConstant();
+
   RooRealVar* _offset = convertProxy(offset_);
+  bool _offsetConstant = _offset->isConstant();
+
   RooRealVar* _C = convertProxy(C_);
+  bool _CConstant = _C->isConstant();
+
   RooRealVar* _mp1 = convertProxy(mp1_);
+  bool _mp1Constant = _mp1->isConstant();
+
   RooRealVar* _width1 = convertProxy(width1_);
+  bool _width1Constant = _width1->isConstant();
+
   RooRealVar* _mp2 = convertProxy(mp2_);
+  bool _mp2Constant = _mp2->isConstant();
+
   RooRealVar* _width2 = convertProxy(width2_);
+  bool _width2Constant = _width2->isConstant();
+
   RooRealVar* _x0 = convertProxy(x0_);
+  bool _x0Constant = _x0->isConstant();
+
   RooRealVar* _dx1 = convertProxy(dx1_);
+  bool _dx1Constant = _dx1->isConstant();
 
-
-  *_gmean = histogramMax_x;
+  if (!_gmeanConstant) {
+    *_gmean = histogramMax_x;
+  }
   //gmean_.setMin(0.5*histogramMax_x);
   //gmean_.setMax(1.5*histogramMax_x);
 
-  *_gsigma = histogramRMS;
+  if (!_gsigmaConstant) {
+    *_gsigma = histogramRMS;
+  }
   //gsigma_.setMin(0.25*TMath::Min(histogramRMSltMax, histogramRMS));
   //gsigma_.setMax(2.0*TMath::Min(histogramRMSltMax, histogramRMS));
 
+  if (!_slopeConstant) {
+    double slopeMin = 1.e-2/(histogramMax_x - startX);
+    double slopeMax = 1.e+2/(histogramMax_x - startX);
+    *_slope = 1./(histogramMax_x - startX);
+    _slope->setMin(slopeMin);
+    _slope->setMax(slopeMax);
+  }
 
-  double slopeMin = 1.e-2/(histogramMax_x - startX);
-  double slopeMax = 1.e+2/(histogramMax_x - startX);
-  *_slope = 1./(histogramMax_x - startX);
-  _slope->setMin(slopeMin);
-  _slope->setMax(slopeMax);
-
-  // Offset + slope*startX = 0
-  double offsetVal = -1.0*_slope->getVal()*startX;
-  *_offset = offsetVal;
+  if (!_offsetConstant) {
+    // Offset + slope*startX = 0
+    double offsetVal = -1.0*_slope->getVal()*startX;
+    *_offset = offsetVal;
+  }
 
   //*_slope = 0.;
   //*_offset = 0.;
   //_slope->setConstant(true);
   //_offset->setConstant(true);
 
-  *_C = 0.25;
+  if (!_CConstant) {
+    *_C = 0.25;
+  }
   //*_C = 0.0;
 
-  *_mp1 = histogramMax_x;
-  _mp1->setMax( 0.5*(fallingEdge_position + histogramMax_x) );
+  if (!_mp1Constant) {
+    *_mp1 = histogramMax_x;
+    _mp1->setMax( 0.5*(fallingEdge_position + histogramMax_x) );
+  }
   //mp1_.setMin(0.8*histogramMax_x);
   //mp1_.setMax(fallingEdge_position);
 
-  *_width1 = 0.04*histogramRMSgtMax;
+  if (!_width2Constant) {
+    *_width1 = 0.04*histogramRMSgtMax;
+  }
   //width1_.setMin(1.0e-4);
   //width1_.setMax(2.0*histogramRMSgtMax);
 
-  *_mp2 = histogramMax_x;
+  if (!_mp2Constant) {
+    *_mp2 = histogramMax_x;
+  }
   //mp2_.setMin(0.8*histogramMax_x);
   //mp2_.setMax(fallingEdge_position);
   //mp2_.setConstant(true);
 
-  *_width2 = 0.04*histogramRMSgtMax;
+  if (!_width2Constant) {
+    *_width2 = 0.04*histogramRMSgtMax;
+  }
   //width2_.setMin(1.0e-4);
   //width2_.setMax(2.0*histogramRMSgtMax);
   //width2_.setConstant(true);
 
-  *_x0 = fallingEdge_position;
-
-  *_dx1 = fallingEdge_position + 5*histogramBinWidth;
-  //dx1_.setConstant(true);
-  //
-  std::cout << "Estimating alpha" << std::endl;
-  *_alpha = 0.0;
-  double sampleSkew = histogram->GetSkewness();
-  std::cout << " - initial sample skew is " << sampleSkew << std::endl;
-
-  if (TMath::Abs(sampleSkew) > 0.80) {
-    sampleSkew = 0.80*sampleSkew/TMath::Abs(sampleSkew);
+  if (!_x0Constant) {
+    *_x0 = fallingEdge_position;
   }
-  double sampleSigma = histogram->GetRMS();
-  double sampleMean = histogram->GetMean();
 
-  std::cout << " - corrected sample skew is " << sampleSkew << std::endl;
-  std::cout << " - sample mean is " << sampleMean << std::endl;
-  std::cout << " - sample sigma is " << sampleSigma << std::endl;
-
-  double thirdMomentToTwoThirds = TMath::Power(TMath::Abs(sampleSkew), 2.0/3.0);
-
-  double absDelta = TMath::Sqrt(
-      TMath::Pi()*0.5*(thirdMomentToTwoThirds)/(
-        thirdMomentToTwoThirds + TMath::Power((4 - TMath::Pi())/2.0, 2.0/3.0)));
-
-  double delta = absDelta*sampleSkew/TMath::Abs(sampleSkew);
-
-  double estSkew = delta/TMath::Sqrt(1- delta*delta);
-  double estScale = sampleSigma/TMath::Sqrt(1 - 2*delta*delta/TMath::Pi());
-  double estLocation = sampleMean - estScale*delta*TMath::Sqrt(2/TMath::Pi());
-
-  std::cout << "Est Location: " << estLocation << std::endl;
-  std::cout << "Est Scale: " << estScale << std::endl;
-  std::cout << "Est Skew: " << estSkew << std::endl;
-
-  *_gmean = estLocation;
-  *_gsigma = estScale;
-  *_alpha = estSkew;
+  /*
+  if (!_dx1Constant) {
+    *_dx1 = fallingEdge_position + 5*histogramBinWidth;
+  }
+  */
 
   std::cout << " Making copy of self for prefits " << std::endl;
   TauDecayKinePdf copy(*this, "tmp");
@@ -540,178 +602,231 @@ RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFact
   std::cout << "First moving to the right" << std::endl;
 
   // The first ZERO bin found
-  double rightMostNonZeroPoint = -1;
-  for (int i = 1; i < histogram->GetNbinsX(); ++i) {
-    if (histogram->GetBinContent(i) == 0) {
-      break;
-    } else {
-      rightMostNonZeroPoint = histogram->GetBinCenter(i);
-    }
-  }
+  //double rightMostNonZeroPoint = -1;
+  //for (int i = 1; i < histogram->GetNbinsX(); ++i) {
+    //if (histogram->GetBinContent(i) == 0) {
+      //break;
+    //} else {
+      //rightMostNonZeroPoint = histogram->GetBinCenter(i);
+    //}
+  //}
+  double rightmostPoint = histogram->GetXaxis()->GetXmax();
 
-  std::cout << "Fitting 5 bins away" << std::endl;
   *_mp1 = histogramMax_x;
   *_width1 = 0.04*histogramRMSgtMax;
-  *_dx1 = 5.0*histogramBinWidth;
 
-  std::cout << "Making histogrammed data" << std::endl;
-  RooDataHist dataHist("tmpDataHist", "tmpDataHist", RooArgSet(*_x), histogram);
+  //std::cout << "Fitting 5 bins away" << std::endl;
+  //*_dx1 = 5.0*histogramBinWidth;
+  std::cout << "Fitting dx1 = " << _dx1->getVal() << " , "
+    << _dx1->getVal()/histogramBinWidth << "  bins away" << std::endl;
 
   _x->setRange("landau1", fallingEdge_position,
-      TMath::Min(rightMostNonZeroPoint - histogramBinWidth,
-        fallingEdge_position + _dx1->getVal()));
+      TMath::Min(rightmostPoint, fallingEdge_position + _dx1->getVal()));
 
-  copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1));
-  std::auto_ptr<RooAbsReal> chi2Left(copy.createChi2(dataHist, RooFit::Range("landau1")));
-  double chi2DOFBest = chi2Left->getVal()/5.0;
-  std::cout << "Did first fit, got chi2/DOF: " << chi2DOFBest << std::endl;
+  copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1), RooFit::PrintEvalErrors(0));
+
+  int landau1StartBin = histogram->FindBin(_x->getMin("landau1"));
+  int landau1EndBin = histogram->FindBin(_x->getMax("landau1"));
+  std::cout << "Start bin: " << landau1StartBin << std::endl;
+  std::cout << "End bin: " << landau1EndBin << std::endl;
+
+  assert(landau1EndBin > landau1StartBin);
+
+  double chi2DOFRef = compLandauChi2(histogram, landau1StartBin, landau1EndBin,
+      _mp1->getVal(), _width1->getVal());
+
+  std::cout << "Did first fit, got chi2/DOF: " << chi2DOFRef << std::endl;
 
   double bestMp1 = _mp1->getVal();
   double bestWidth1 = _width1->getVal();
 
-  while (_x0->getVal() + _dx1->getVal() < rightMostNonZeroPoint - histogramBinWidth) {
-    *_dx1 = _dx1->getVal() + histogramBinWidth;
+  // We expect that the Chi2 is monotonously increasing as we moving dx1 to the
+  // right.
+  double dx1Step = (rightmostPoint - (_x0->getVal() + _dx1->getVal()))*0.5;
+
+  // Start at the largest possible DX1.  Search backwards until the chi2 is at
+  // most 2*the best chi2
+  double maxDX1 = rightmostPoint - _x0->getVal();
+
+  double latestChi2DOF = -1;
+
+  *_dx1 = maxDX1;
+
+  // Search until the step size is less than a bin
+  while (dx1Step > histogramBinWidth && _dx1->getVal() <= maxDX1) {
+    _x->setRange("landau1", fallingEdge_position,
+        TMath::Min(rightmostPoint, fallingEdge_position + _dx1->getVal()));
 
     std::cout << "Trying to fit landau1 between x0 = "
       << fallingEdge_position << " and "
       << fallingEdge_position + _dx1->getVal() << std::endl;
 
-    _x->setRange("landau1", fallingEdge_position,
-        fallingEdge_position + _dx1->getVal());
+    landau1StartBin = histogram->FindBin(_x->getMin("landau1"));
+    landau1EndBin = histogram->FindBin(_x->getMax("landau1"));
 
-    // Restart with the initial conditions
-    *_mp1 = histogramMax_x;
-    *_width1 = 0.04*histogramRMSgtMax;
-    copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1));
-    std::auto_ptr<RooAbsReal> chi2(copy.createChi2(dataHist, RooFit::Range("landau1")));
-    double chi2DOF = chi2->getVal()/(_dx1->getVal()/histogramBinWidth);
-    std::cout << " Fit chi2DOF: " << chi2DOF << " best so far: "
-      << chi2DOFBest << std::endl;
-    if (chi2DOFBest > chi2DOF) {
-      std::cout << " Found new best point!" << std::endl;
-      chi2DOFBest = chi2DOF;
-    } else if ( (chi2DOF - chi2DOFBest)/TMath::Abs(chi2DOFBest) > 1.0 ) {
-      std::cout << "Stopping!" << std::endl;
+    if (landau1StartBin >= landau1EndBin) {
+      std::cout << " The search window is only 1 bin wide! Stopping."
+        << std::endl;
       break;
     }
-    // We call these the "best" because we want to go as far right as possible.
-    bestMp1 = _mp1->getVal();
-    bestWidth1 = _width1->getVal();
-  }
 
-  std::cout << "Now fitting to the left" << std::endl;
-  double leftStepSize = (_x0->getVal() - histogramMax_x)/6.0;
-
-  while (_x0->getVal() > histogramMax_x) {
-    *_x0 = _x0->getVal() - leftStepSize;
-    *_dx1 = _dx1->getVal() + leftStepSize;
-
-    std::cout << "Trying to fit landau1 between x0 = "
-      << _x0->getVal() << " and "
-      << _x0->getVal() + _dx1->getVal() << std::endl;
-
-    _x->setRange("landau1", _x0->getVal(), _x0->getVal() + _dx1->getVal());
-    // Restart w/ the initial conditions
+    // Restart with the same initial conditions each time
     *_mp1 = bestMp1;
-    if (_mp1->getVal() > _x0->getVal()) {
-      *_mp1 = 0.95*_x0->getVal();
-    }
-    _mp1->setMax(0.98*_x0->getVal());
-
     *_width1 = bestWidth1;
-    copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1));
-    std::auto_ptr<RooAbsReal> chi2(copy.createChi2(dataHist, RooFit::Range("landau1")));
-    double chi2DOF = chi2->getVal()/(_dx1->getVal()/histogramBinWidth);
-    std::cout << " Fit chi2DOF: " << chi2DOF << " best so far: "
-      << chi2DOFBest << std::endl;
-    if (chi2DOFBest > chi2DOF) {
-      std::cout << " Found new best point!" << std::endl;
-      chi2DOFBest = chi2DOF;
-    } else if ( (chi2DOF - chi2DOFBest)/TMath::Abs(chi2DOFBest) > 0.25 ) {
-      std::cout << "Stopping!" << std::endl;
-      break;
-    }
-    // We call these the "best" because we want to go as far right as possible.
-    bestMp1 = _mp1->getVal();
-    bestWidth1 = _width1->getVal();
-  }
 
-  /*
-  std::cout << "Now trying to fit second landau" << std::endl;
-  // Find data in second landau region
-  int x1Bin = histogram->FindBin(_x0->getVal() + _dx1->getVal());
-  double remainingData = histogram->Integral(x1Bin, histogram->GetNbinsX());
-  if (remainingData > 50) {
-    _mp1->setConstant(true);
-    _width1->setConstant(true);
-    _mp2->setConstant(false);
-    _width2->setConstant(false);
-    _x->setRange("landau2", fallingEdge_position + _dx1->getVal(),
-        rightmostPoint);
-    copy.fitTo(data, RooFit::Range("landau2"), RooFit::PrintLevel(-1));
-  } else {
-    std::cout << "Not enough data in tail to fit second landau!" << std::endl;
-  }
-  _mp2->setConstant(true);
-  _width2->setConstant(true);
-  */
+    copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1), RooFit::PrintEvalErrors(0));
 
-  /*
-  std::cout << "Fitting right end of histogram" << std::endl;
-  *_mp1 = histogramMax_x;
-  *_width1 = 0.04*histogramRMSgtMax;
-  _x->setRange("landau1", fallingEdge_position,
-        histogram->GetXaxis()->GetXmax());
-  *_dx1 = histogram->GetXaxis()->GetXmax() - fallingEdge_position;
-  double rightDX1 = _dx1->getVal();
-  copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1));
-  std::auto_ptr<RooAbsReal> nllRight(copy.createNLL(data, RooFit::Range("landau1")));
-  double nllDOFRight = nllRight->getVal()/5.0;
-  std::cout << "Did right fit, got NLL/DOF: " << nllDOFRight << std::endl;
+    latestChi2DOF = compLandauChi2(histogram, landau1StartBin, landau1EndBin,
+        _mp1->getVal(), _width1->getVal());
 
-  double nextFit = (rightDX1 + leftDX1)*0.5;
-  double nextJump = (rightDX1 - leftDX1)*0.25;
+    std::cout << " Fit chi2DOF: "
+      << latestChi2DOF << " reference: " << chi2DOFRef << std::endl;
 
-  // Binary search to half the distance
-  double dDX1 = 0.5*(
-      histogram->GetXaxis()->GetXmax() - (_x0->getVal() + _dx1->getVal()));
-
-  std::cout << "Starting search @ the end of the histogram" << std::endl;
-  *_dx1 = histogram->GetXaxis()->GetXmax() - fallingEdge_position;
-
-
-  while ( dDX1 > histogramBinWidth ) {
-    _x->setRange("landau1", fallingEdge_position,
-        fallingEdge_position + _dx1->getVal());
-    std::cout << "Trying to fit landau1 between x0 = "
-      << fallingEdge_position << " and "
-      << fallingEdge_position + _dx1->getVal() << std::endl;
-
-    copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1));
-    std::auto_ptr<RooAbsReal> nll(
-        copy.createNLL(data, RooFit::Range("landau1")));
-    double nBins = _dx1->getVal()/histogramBinWidth;
-    double nllDOF = nll->getVal()/nBins;
-    std::cout << " -- fit NLLDOF: " << nllDOF
-      << " reference: " << nllDOFRef << std::endl;
-    if (nllDOF > 0.75*nllDOFRef) {
-      *_dx1 = _dx1->getVal() - dDX1;
+    if (latestChi2DOF > 1.1*chi2DOFRef) {
+      std::cout << "Bad fit, moving " << dx1Step << " to the left." << std::endl;
+      // Bad fit, move to the left.
+      *_dx1 = _dx1->getVal() - dx1Step;
     } else {
-      *_dx1 = TMath::Min(histogram->GetXaxis()->GetXmax(),
-          _dx1->getVal() + dDX1);
+      std::cout << "Good fit, moving " << dx1Step << " to the right." << std::endl;
+      *_dx1 = TMath::Min(maxDX1 + histogramBinWidth, _dx1->getVal() + dx1Step);
     }
-    dDX1 *= 0.5;
+    dx1Step *= 0.5;
   }
-  */
 
-  std::cout << "Final result: x0: "
-    << fallingEdge_position << " and x1: "
-    << fallingEdge_position + _dx1->getVal()
-    << std::endl;
+
+  bool moveLeft = false;
+  if (moveLeft) {
+    double x0Step = (_x0->getVal() - histogramMax_x)*0.5;
+    assert(x0Step >= 0);
+
+    std::cout << "Now fitting to the left, x0 step size is: "
+      << x0Step << " (" << x0Step/histogramBinWidth << " bins wide)" << std::endl;
+
+    // Reset reference value
+    chi2DOFRef = latestChi2DOF;
+
+    // Let X1 be constant
+    double x1Position = _x0->getVal() + _dx1->getVal();
+
+    *_x0 = histogramMax_x;
+
+    while (x0Step > histogramBinWidth && _x0->getVal() >= histogramMax_x) {
+      _x->setRange("landau1", _x0->getVal(), x1Position);
+
+      std::cout << "Trying to fit landau1 between x0 = "
+        << _x0->getVal() << " and x1 = " << x1Position << std::endl;
+
+      landau1StartBin = histogram->FindBin(_x->getMin("landau1"));
+      landau1EndBin = histogram->FindBin(_x->getMax("landau1"));
+
+      if (landau1StartBin >= landau1EndBin) {
+        std::cout << " The search window is only 1 bin wide! Stopping."
+          << std::endl;
+        break;
+      }
+
+      *_mp1 = bestMp1;
+      *_width1 = bestWidth1;
+
+      copy.fitTo(data, RooFit::Range("landau1"), RooFit::PrintLevel(-1), RooFit::PrintEvalErrors(0));
+
+      latestChi2DOF = compLandauChi2(histogram, landau1StartBin, landau1EndBin,
+          _mp1->getVal(), _width1->getVal());
+
+      std::cout << " Fit chi2DOF: " << latestChi2DOF
+        << " reference: " << chi2DOFRef << std::endl;
+
+      if (latestChi2DOF > 2*chi2DOFRef) {
+        std::cout << "Bad fit, moving " << x0Step << " to the right." << std::endl;
+        // Bad fit, move to the left.
+        *_x0 = _x0->getVal() + x0Step;
+        *_dx1 = _dx1->getVal() - x0Step;
+      } else {
+        std::cout << "Good fit, moving " << x0Step << " to the left." << std::endl;
+        *_x0 = _x0->getVal() - x0Step;
+        *_dx1 = _dx1->getVal() + x0Step;
+      }
+      x0Step *= 0.5;
+    }
+  }
+
+
+  std::cout << "Final result: x0: " << _x0->getVal() << " and x1: "
+    << _x0->getVal() + _dx1->getVal() << std::endl;
+
+
+  if (!_mp2Constant || !_width2Constant) {
+    std::cout << "Now trying to fit second landau" << std::endl;
+    // Find data in second landau region
+    int x1Bin = histogram->FindBin(_x0->getVal() + _dx1->getVal());
+    double remainingData = histogram->Integral(x1Bin, histogram->GetNbinsX());
+    if (remainingData > 10) {
+      _mp1->setConstant(true);
+      _width1->setConstant(true);
+      if (!_mp2Constant) {
+        _mp2->setConstant(false);
+        *_mp2 = _mp1->getVal();
+      }
+      if (!_width2Constant) {
+        _width2->setConstant(false);
+        *_width2 = _width1->getVal();
+      }
+      _x->setRange("landau2", _x0->getVal() + _dx1->getVal(),
+          rightmostPoint);
+      copy.fitTo(data, RooFit::Range("landau2"), RooFit::PrintLevel(-1),
+          RooFit::PrintEvalErrors(0));
+    } else {
+      std::cout << "Not enough data in tail to fit second landau!" << std::endl;
+      if (!_mp2Constant) {
+        *_mp2 = _mp1->getVal();
+      }
+      if (!_width2Constant) {
+        *_width2 = _width1->getVal();
+      }
+    }
+  }
 
   std::cout << "Preforming gaussian prefit" << std::endl;
-  histogram->GetXaxis()->SetRangeUser(0, fallingEdge_position);
-  _x->setRange("gaussian", 0, fallingEdge_position);
+
+  if (!_alphaConstant) {
+    std::cout << "Estimating alpha" << std::endl;
+    histogram->GetXaxis()->SetRangeUser(0, _x0->getVal());
+    *_alpha = 0.0;
+    double sampleSkew = histogram->GetSkewness();
+    std::cout << " - initial sample skew is " << sampleSkew << std::endl;
+
+    if (TMath::Abs(sampleSkew) > 0.95) {
+      sampleSkew = 0.95*sampleSkew/TMath::Abs(sampleSkew);
+    }
+    double sampleSigma = histogram->GetRMS();
+    double sampleMean = histogram->GetMean();
+
+    std::cout << " - corrected sample skew is " << sampleSkew << std::endl;
+    std::cout << " - sample mean is " << sampleMean << std::endl;
+    std::cout << " - sample sigma is " << sampleSigma << std::endl;
+
+    double thirdMomentToTwoThirds = TMath::Power(TMath::Abs(sampleSkew), 2.0/3.0);
+
+    double absDelta = TMath::Sqrt(
+        TMath::Pi()*0.5*(thirdMomentToTwoThirds)/(
+          thirdMomentToTwoThirds + TMath::Power((4 - TMath::Pi())/2.0, 2.0/3.0)));
+
+    double delta = absDelta*sampleSkew/TMath::Abs(sampleSkew);
+
+    double estSkew = delta/TMath::Sqrt(1- delta*delta);
+    double estScale = sampleSigma/TMath::Sqrt(1 - 2*delta*delta/TMath::Pi());
+    double estLocation = sampleMean - estScale*delta*TMath::Sqrt(2/TMath::Pi());
+
+    std::cout << "Est Location: " << estLocation << std::endl;
+    std::cout << "Est Scale: " << estScale << std::endl;
+    std::cout << "Est Skew: " << estSkew << std::endl;
+
+    *_gmean = estLocation;
+    *_gsigma = estScale;
+    *_alpha = estSkew;
+  }
+
+  _x->setRange("gaussian", 0, _x0->getVal());
 
   _mp1->setConstant(true);
   _width1->setConstant(true);
@@ -719,29 +834,34 @@ RooArgSet TauDecayKinePdf::estimateParameters(RooAbsData& data, double errorFact
   _width2->setConstant(true);
   _x0->setConstant(true);
   _dx1->setConstant(true);
-  *_C = 1;
-  _C->setConstant(true);
-  _slope->setConstant(true);
-  _offset->setConstant(true);
 
-  *_alpha = -1;
-  _alpha->setMax(0);
-  _alpha->setMin(-4);
-  _alpha->setConstant(false);
-  _gmean->setConstant(false);
-  _gsigma->setConstant(false);
+  _C->setConstant(_CConstant);
+  _slope->setConstant(_slopeConstant);
+  _offset->setConstant(_offsetConstant);
+  _alpha->setConstant(_alphaConstant);
+  _gmean->setConstant(_gmeanConstant);
+  _gsigma->setConstant(_gsigmaConstant);
 
-  copy.fitTo(data, RooFit::Range("gaussian"));
+  copy.fitTo(data, RooFit::Range("gaussian"), RooFit::PrintEvalErrors(0));
 
-  _gmean->setConstant(false);
-  _gsigma->setConstant(false);
-  _mp1->setConstant(false);
-  _width1->setConstant(false);
-  //_alpha->setConstant(false);
-  //_slope->setConstant(false);
-  //_offset->setConstant(false);
-  //_C->setConstant(false);
-  //_x0->setConstant(false);
+  // Reset all of the constantancy
+  _mp1->setConstant(_mp1Constant);
+  _width1->setConstant(_width1Constant);
+  _mp2->setConstant(_mp2Constant);
+  _width2->setConstant(_width2Constant);
+  _x0->setConstant(_x0Constant);
+  _dx1->setConstant(_dx1Constant);
+
+  // Setting some sane ranges for the parameters
+  if (!_x0Constant) {
+    //_x0->setMin(histogramMax_x);
+  }
+  if (!_mp1Constant) {
+    _mp1->setMax(fallingEdge_position);
+  }
+  if (!_mp2Constant) {
+    _mp2->setMax(fallingEdge_position);
+  }
 
   RooArgSet output;
 
