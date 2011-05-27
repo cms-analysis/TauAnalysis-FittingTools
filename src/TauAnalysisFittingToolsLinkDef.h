@@ -1,4 +1,5 @@
 #include "TauAnalysis/FittingTools/interface/TauDecayKinePdf.h"
+#include "TauAnalysis/FittingTools/interface/TauDecayKinePdf2.h"
 #include "TauAnalysis/FittingTools/interface/RooSkewNormal.h"
 #include "TauAnalysis/FittingTools/interface/RooCruijff.h"
 #include "TauAnalysis/FittingTools/interface/RooAbsEstimatablePdf.h"
@@ -11,6 +12,7 @@
 
 #pragma link C++ class RooAbsEstimatablePdf;
 #pragma link C++ class TauDecayKinePdf;
+#pragma link C++ class TauDecayKinePdf2;
 #pragma link C++ class RooSkewNormal;
 #pragma link C++ class RooCruijff;
 
