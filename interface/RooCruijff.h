@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Package: RooRarFit                                                        *
- *    File: $Id: RooCruijff.rdl,v 1.2 2007/06/29 08:37:34 zhanglei Exp $   *
+ *    File: $Id: RooCruijff.h,v 1.1 2011/05/13 10:39:07 friis Exp $   *
  * Authors:                                                                  *
  *    Karsten Koeneke, Massachusetts Institute of Technology, Cambridge, USA *
  *    Vouter Hulbergen                                                       *
@@ -36,7 +36,9 @@ public:
   virtual RooArgSet estimateParameters(
       RooAbsData& data, double errorFactor=1.0);
 
-  inline virtual ~RooCruijff() { }
+  virtual ~RooCruijff() { }
+
+  Double_t evaluate() const;
 
 protected:
   RooRealProxy x;
@@ -46,10 +48,8 @@ protected:
   RooRealProxy alphaL;
   RooRealProxy alphaR;
 
-  Double_t evaluate() const;
-
 private:
-  ClassDef(RooCruijff,0)
+  ClassDef(RooCruijff,1)
 };
 
 #endif

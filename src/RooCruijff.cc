@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Package: RooRarFit                                                        *
- *    File: $Id: RooCruijff.cc,v 1.3 2007/06/29 08:37:34 zhanglei Exp $   *
+ *    File: $Id: RooCruijff.cc,v 1.1 2011/05/13 10:39:08 friis Exp $   *
  * Authors:                                                                  *
  *    Karsten Koeneke, Massachusetts Institute of Technology, Cambridge, USA *
  *    Vouter Hulbergen                                                       *
@@ -23,7 +23,6 @@
 
 #include "TH1.h"
 
-ClassImp(RooCruijff)
 
 RooCruijff::RooCruijff(const char *name, const char *title,
 		       RooAbsReal& _x, RooAbsReal& _m0,
@@ -83,3 +82,5 @@ RooArgSet RooCruijff::estimateParameters(RooAbsData& data, double errorFactor) {
   sigmaR = histo->GetRMS();
   return RooArgSet(m0.arg(), sigmaR.arg(), sigmaL.arg());
 }
+
+ClassImp(RooCruijff)
