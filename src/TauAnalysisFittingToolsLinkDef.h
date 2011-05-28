@@ -3,6 +3,7 @@
 #include "TauAnalysis/FittingTools/interface/RooSkewNormal.h"
 #include "TauAnalysis/FittingTools/interface/RooCruijff.h"
 #include "TauAnalysis/FittingTools/interface/RooAbsEstimatablePdf.h"
+#include "TauAnalysis/FittingTools/interface/RooPiecewisePtBalancePdf.h"
 
 #ifdef __CINT__
 
@@ -15,5 +16,6 @@
 #pragma link C++ class TauDecayKinePdf2;
 #pragma link C++ class RooSkewNormal;
 #pragma link C++ class RooCruijff;
+#pragma link C++ class RooPiecewisePtBalancePdf;
 
 #endif
