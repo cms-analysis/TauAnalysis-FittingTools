@@ -159,7 +159,7 @@ Double_t TauDecayKinePdf2::evaluateGaussian(Double_t x, bool inclNormFactor, boo
     gaussian += C_*(1./(TMath::Sqrt(2.*TMath::Pi())*gsigma_))*TMath::Exp(-0.5*pull*pull)*(1. + TMath::Erf(alpha_*pull));
   }
 
-  gaussian += (1. - C_)*(slope_*(x - offset_));
+  gaussian += (1. - C_)*TMath::Max(0., slope_*(x - offset_));
 
 //--- normalize Gaussian such that
 //      C*exp(-0.5*((x - gmean)/2sigma)^2) + (1 - C)*(slope*x + offset)) = Landau1(x, mp1, width1)
@@ -347,9 +347,15 @@ Double_t TauDecayKinePdf2::analyticalIntegral(Int_t code, const char* rangeName)
 	gaussian_integral += C_*(cdfHi - cdfLo);
       }
 
-      gaussian_integral +=
-	(1. - C_)*(0.5*slope_*(xMax_gaussian*xMax_gaussian - xMin_gaussian*xMin_gaussian) 
-                  - slope_*offset_*(xMax_gaussian - xMin_gaussian));
+      double xMin_linear = xMin_gaussian;
+      double xMax_linear = xMax_gaussian;
+      if ( slope_ > 0. ) xMin_linear = TMath::Max(xMin_gaussian, offset_);
+      if ( slope_ < 0. ) xMax_linear = TMath::Min(xMax_gaussian, offset_);
+      if ( xMax_linear > xMin_linear ) {
+	gaussian_integral += (1. - C_)
+	                    *(0.5*slope_*(xMax_linear*xMax_linear - xMin_linear*xMin_linear) 
+                             - slope_*offset_*(xMax_linear - xMin_linear));
+      }
 
       gaussian_integral *= normGaussian_;
     }
@@ -396,23 +402,24 @@ Double_t TauDecayKinePdf2::analyticalIntegral(Int_t code, const char* rangeName)
 
     retVal = landau1_integral + gaussian_integral + landau2_integral + landau3_integral;
 
-    if ( retVal < 1.e-6 ) {
-      edm::LogWarning ("<TauDecayKinePdf2::analyticalIntegral>:")
-	<< " Return value = " << retVal << " !!";
-      print(std::cerr);
-      bool verbosity_backup = this->verbosity_;
-      this->verbosity_ = true;
-      updateParameters();
-      updateNormFactorGaussian();
-      updateNormFactorLandau2();
-      updateNormFactorLandau3();
-      this->verbosity_ = verbosity_backup;
-      std::cerr << "xMin = " << xMin << ", xMax = " << xMax << ":" << std::endl;
-      std::cerr << " Landau1_integral  = " << landau1_integral  << std::endl;
-      std::cerr << " Gaussian_integral = " << gaussian_integral << std::endl;
-      std::cerr << " Landau2_integral  = " << landau2_integral  << std::endl;
-      std::cerr << " Landau3_integral  = " << landau3_integral  << std::endl;
-    }
+    if ( retVal < 1.e-6 ) retVal = 1.e-6; 
+    //if ( retVal < 1.e-6 ) {
+    //  edm::LogWarning ("<TauDecayKinePdf2::analyticalIntegral>:")
+    //	  << " Return value = " << retVal << " !!";
+    //  print(std::cerr);
+    //  bool verbosity_backup = this->verbosity_;
+    //  this->verbosity_ = true;
+    //  updateParameters();
+    //  updateNormFactorGaussian();
+    //  updateNormFactorLandau2();
+    //  updateNormFactorLandau3();
+    //  this->verbosity_ = verbosity_backup;
+    //  std::cerr << "xMin = " << xMin << ", xMax = " << xMax << ":" << std::endl;
+    //  std::cerr << " Landau1_integral  = " << landau1_integral  << std::endl;
+    //  std::cerr << " Gaussian_integral = " << gaussian_integral << std::endl;
+    //  std::cerr << " Landau2_integral  = " << landau2_integral  << std::endl;
+    //  std::cerr << " Landau3_integral  = " << landau3_integral  << std::endl;
+    //}
   }
 
   return retVal;
