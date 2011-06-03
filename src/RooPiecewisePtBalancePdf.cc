@@ -334,6 +334,7 @@ RooArgSet RooPiecewisePtBalancePdf::estimateParameters(RooAbsData& data, double 
   RooPiecewisePtBalancePdf copy(*this, "copy");
 
   bool fitAlpha = false;
+  bool fitTailPos = !_tail_mp->isConstant();
 
   if (!_sn_skew->isConstant()) {
     fitAlpha = true;
